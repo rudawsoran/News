@@ -1,11 +1,40 @@
+<!DOCTYPE html>
+<html lang="ku">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Human Sonar 2026</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/body-pix"></script>
+    <style>
+        body { margin: 0; background: black; overflow: hidden; font-family: sans-serif; }
+        #container { position: relative; width: 100vw; height: 100vh; }
+        video, canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; }
+        #status { position: absolute; top: 20px; width: 100%; text-align: center; color: #00ffff; z-index: 100; font-weight: bold; text-shadow: 0 0 10px #00ffff; }
+        /* ئەنیمەیشنی هێڵی سکانەر */
+        .scan-line { position: absolute; width: 100%; height: 4px; background: rgba(0, 255, 255, 0.6); box-shadow: 0 0 15px #00ffff; z-index: 50; animation: move 4s linear infinite; }
+        @keyframes move { from { top: 0; } to { top: 100%; } }
+    </style>
+</head>
+<body>
+
+<div id="status">لەکاردایە: Searching for Signatures...</div>
+<div id="container">
+    <div class="scan-line"></div>
+    <video id="video" autoplay playsinline muted></video>
+    <canvas id="canvas"></canvas>
+</div>
+
+<script>
     const video = document.getElementById('video');
     const canvas = document.getElementById('canvas');
     const ctx = canvas.getContext('2d');
+    const statusText = document.getElementById('status');
 
     async function setupCamera() {
         try {
             const stream = await navigator.mediaDevices.getUserMedia({ 
-                video: { facingMode: 'environment' }, 
+                video: { facingMode: 'environment', width: { ideal: 640 }, height: { ideal: 480 } }, 
                 audio: false 
             });
             video.srcObject = stream;
@@ -16,32 +45,43 @@
                 };
             });
         } catch (e) {
-            alert("هەڵە لە کامێرا: " + e.message);
+            statusText.innerText = "هەڵە: ڕێگەی کامێرا نەدراوە!";
+            console.error(e);
         }
     }
 
     async function startDetection() {
-        // نیشاندانی نامەیەک تا مۆدێلەکە بار دەبێت
-        console.log("Loading AI Model...");
+        statusText.innerText = "خەریکی بارکردنی مۆدێلی AI...";
+        
+        // بارکردنی مۆدێلێکی سووک بۆ مۆبایل
         const net = await bodyPix.load({
             architecture: 'MobileNetV1',
             outputStride: 16,
             multiplier: 0.50,
             quantBytes: 2
         });
+
+        statusText.innerText = "سۆنەر چالاکە - SCANNING";
         
         canvas.width = video.videoWidth;
         canvas.height = video.videoHeight;
 
         async function detect() {
-            const segmentation = await net.segmentPerson(video);
-            
-            const maskColor = { r: 0, g: 255, b: 255, a: 150 };
+            const segmentation = await net.segmentPerson(video, {
+                flipHorizontal: false,
+                internalResolution: 'medium',
+                segmentationThreshold: 0.7
+            });
+
+            // ڕەنگی شینی گەش (Neon Blue) بۆ جەستە
+            const maskColor = { r: 0, g: 255, b: 255, a: 180 }; 
             const background = { r: 0, g: 0, b: 0, a: 0 };
             const coloredPartImage = bodyPix.toMask(segmentation, maskColor, background);
 
             ctx.clearRect(0, 0, canvas.width, canvas.height);
-            bodyPix.drawMask(canvas, video, coloredPartImage, 0.7, 0, false);
+            
+            // کێشانەوەی وێنەی کامێراکە و ماسکە شینەکە بەسەریدا
+            bodyPix.drawMask(canvas, video, coloredPartImage, 0.6, 0, false);
 
             requestAnimationFrame(detect);
         }
@@ -49,3 +89,6 @@
     }
 
     setupCamera().then(startDetection);
+</script>
+</body>
+</html>
