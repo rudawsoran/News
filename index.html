@@ -1,74 +1,77 @@
 <!DOCTYPE html>
-<html>
+<html lang="ku">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Sonar System</title>
-    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/body-pix"></script>
+    <title>AI Sonar Scanner 🔱</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@3.9.0"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/body-pix@2.2.0"></script>
     <style>
-        body { margin: 0; background: black; color: cyan; font-family: sans-serif; overflow: hidden; }
-        #status { position: absolute; top: 10px; width: 100%; text-align: center; z-index: 10; font-size: 14px; }
-        video, canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; }
+        body { margin: 0; background: black; overflow: hidden; font-family: 'Segoe UI', sans-serif; }
+        #container { position: relative; width: 100vw; height: 100vh; }
+        video { position: absolute; width: 100%; height: 100%; object-fit: cover; opacity: 0.3; }
+        canvas { position: absolute; width: 100%; height: 100%; object-fit: cover; z-index: 5; }
+        #ui { position: absolute; top: 20px; width: 100%; text-align: center; color: #00ffff; z-index: 10; font-weight: bold; letter-spacing: 2px; }
+        /* هێڵی جوڵاوی سۆنەر */
+        .scan-line { position: absolute; width: 100%; height: 2px; background: cyan; box-shadow: 0 0 15px cyan; z-index: 8; animation: move 3s linear infinite; }
+        @keyframes move { from { top: 0; } to { top: 100%; } }
     </style>
 </head>
 <body>
 
-<div id="status">Loading AI Model...</div>
-<video id="video" autoplay playsinline muted></video>
-<canvas id="canvas"></canvas>
+<div id="ui">SYSTEM: <span id="msg">INITIALIZING AI...</span></div>
+<div id="container">
+    <div class="scan-line"></div>
+    <video id="video" autoplay playsinline muted></video>
+    <canvas id="canvas"></canvas>
+</div>
 
 <script>
-    // کۆدەکەی تۆ لێرەدا دەست پێ دەکات
     const video = document.getElementById('video');
     const canvas = document.getElementById('canvas');
     const ctx = canvas.getContext('2d');
+    const msg = document.getElementById('msg');
 
-    async function setupCamera() {
+    async function startApp() {
         try {
+            // ١. کردنەوەی کامێرا
             const stream = await navigator.mediaDevices.getUserMedia({ 
-                video: { facingMode: 'environment' }, 
-                audio: false 
+                video: { facingMode: 'environment' }, audio: false 
             });
             video.srcObject = stream;
-            return new Promise((resolve) => {
-                video.onloadedmetadata = () => {
-                    video.play();
-                    resolve(video);
-                };
+            
+            // ٢. بارکردنی مۆدێل بە وەشانی MobileNet (زۆر خێرایە)
+            msg.innerText = "LOADING MODEL (PLEASE WAIT)...";
+            const net = await bodyPix.load({
+                architecture: 'MobileNetV1',
+                outputStride: 16,
+                multiplier: 0.50,
+                quantBytes: 2
             });
-        } catch (e) {
-            alert("Error: " + e.message);
+
+            msg.innerText = "SCANNING FOR HUMAN SIGNATURES";
+            
+            function detect() {
+                canvas.width = video.videoWidth;
+                canvas.height = video.videoHeight;
+                
+                net.segmentPerson(video, { internalResolution: 'low', segmentationThreshold: 0.7 })
+                .then(segmentation => {
+                    // ڕەنگی شینی سۆنەر (Neon Blue)
+                    const mask = bodyPix.toMask(segmentation, {r:0, g:255, b:255, a:180}, {r:0, g:0, b:0, a:0});
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    bodyPix.drawMask(canvas, video, mask, 0.8, 0, false);
+                    requestAnimationFrame(detect);
+                });
+            }
+            detect();
+        } catch (err) {
+            msg.innerText = "ERROR: ACCESS DENIED";
+            console.error(err);
         }
     }
 
-    async function startDetection() {
-        const net = await bodyPix.load({
-            architecture: 'MobileNetV1',
-            outputStride: 16,
-            multiplier: 0.50,
-            quantBytes: 2
-        });
-        
-        document.getElementById('status').innerText = "SYSTEM ACTIVE - SCANNING";
-        canvas.width = video.videoWidth;
-        canvas.height = video.videoHeight;
-
-        async function detect() {
-            const segmentation = await net.segmentPerson(video);
-            const maskColor = { r: 0, g: 255, b: 255, a: 150 };
-            const background = { r: 0, g: 0, b: 0, a: 0 };
-            const coloredPartImage = bodyPix.toMask(segmentation, maskColor, background);
-
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            bodyPix.drawMask(canvas, video, coloredPartImage, 0.7, 0, false);
-            requestAnimationFrame(detect);
-        }
-        detect();
-    }
-
-    setupCamera().then(startDetection);
+    startApp();
 </script>
-
 </body>
 </html>
