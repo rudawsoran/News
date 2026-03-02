@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="ku">
+<head>
+    <meta charset="UTF-8">
+    <title>AI Human Scanner 2026 🔱</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/body-pix"></script>
+    <style>
+        body { margin: 0; background: black; color: cyan; text-align: center; font-family: sans-serif; overflow: hidden; }
+        video, canvas { position: absolute; left: 0; top: 0; width: 100vw; height: 100vh; object-fit: cover; }
+        #ui { position: relative; z-index: 10; padding: 20px; pointer-events: none; }
+        .scanner-line { position: absolute; width: 100%; height: 2px; background: rgba(0, 255, 255, 0.5); top: 0; animation: scan 3s linear infinite; }
+        @keyframes scan { from { top: 0; } to { top: 100%; } }
+    </style>
+</head>
+<body>
+
+<div id="ui">
+    <h2>AI SONAR SYSTEM v2.0</h2>
+    <p>Searching for Human Heat Signatures...</p>
+</div>
+<div class="scanner-line"></div>
+
+<video id="video" autoplay playsinline muted></video>
+<canvas id="canvas"></canvas>
+
+<script>
+    const video = document.getElementById('video');
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+
+    async function setupCamera() {
+        const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' }, audio: false });
+        video.srcObject = stream;
+        return new Promise((resolve) => { video.onloadedmetadata = () => resolve(video); });
+    }
+
+    async function startDetection() {
+        const net = await bodyPix.load(); // بارکردنی مۆدێلی ناسینەوەی جەستە
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+
+        async function detect() {
+            const segmentation = await net.segmentPerson(video);
+            
+            // دروستکردنی ڕەنگی شین بۆ جەستە (Mask)
+            const maskColor = { r: 0, g: 255, b: 255, a: 150 }; // شینی نیۆن
+            const background = { r: 0, g: 0, b: 0, a: 0 }; // پشتی شەفاف
+            const coloredPartImage = bodyPix.toMask(segmentation, maskColor, background);
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            bodyPix.drawMask(canvas, video, coloredPartImage, 0.7, 0, false);
+
+            requestAnimationFrame(detect);
+        }
+        detect();
+    }
+
+    setupCamera().then(startDetection);
+</script>
+
+</body>
+</html>
